@@ -177,7 +177,7 @@ export default function AdminPage() {
         <nav className="p-4 space-y-2">
           <button
             onClick={() => setActiveTab("assignments")}
-            className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors ${
+            className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors cursor-pointer ${
               activeTab === "assignments"
                 ? "bg-blue-50 text-blue-700 border-r-2 border-blue-700"
                 : "text-gray-600 hover:bg-gray-50"
@@ -190,7 +190,7 @@ export default function AdminPage() {
           <Link href="/work_creation">
             <button
               onClick={() => setActiveTab("create")}
-              className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors ${
+              className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors cursor-pointer ${
                 activeTab === "create"
                   ? "bg-blue-50 text-blue-700 border-r-2 border-blue-700"
                   : "text-gray-600 hover:bg-gray-50"
@@ -201,12 +201,12 @@ export default function AdminPage() {
             </button>
           </Link>
 
-          <button className="w-full flex items-center px-3 py-2 rounded-lg text-left text-gray-600 hover:bg-gray-50 transition-colors">
+          <button className="w-full flex items-center px-3 py-2 rounded-lg text-left text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">
             <Users className="w-5 h-5 mr-3" />
             Funcionários
           </button>
 
-          <button className="w-full flex items-center px-3 py-2 rounded-lg text-left text-gray-600 hover:bg-gray-50 transition-colors">
+          <button className="w-full flex items-center px-3 py-2 rounded-lg text-left text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">
             <Settings className="w-5 h-5 mr-3" />
             Configurações
           </button>
@@ -224,7 +224,7 @@ export default function AdminPage() {
                 <p className="text-xs text-gray-500">admin@workflux.com</p>
               </div>
             </div>
-            <button className="text-gray-400 hover:text-gray-600 transition-colors">
+            <button className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
               <LogOut size={18} />
             </button>
           </div>
@@ -249,13 +249,13 @@ export default function AdminPage() {
               </p>
             </div>
             <div className="flex items-center space-x-4">
-              <button className="text-gray-400 hover:text-gray-600 transition-colors">
+              <button className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
                 <Bell size={20} />
               </button>
               {activeTab === "assignments" && (
                 <button
                   onClick={() => setShowAssignModal(true)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center cursor-pointer"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Nova Atribuição
@@ -401,19 +401,19 @@ export default function AdminPage() {
                           <div className="flex items-center space-x-2 ml-4">
                             <button
                               onClick={() => setSelectedAssignment(assignment)}
-                              className="text-blue-600 hover:text-blue-700 transition-colors p-2"
+                              className="text-blue-600 hover:text-blue-700 transition-colors p-2 cursor-pointer"
                               title="Ver detalhes"
                             >
                               <Eye size={18} />
                             </button>
                             <button
-                              className="text-gray-400 hover:text-gray-600 transition-colors p-2"
+                              className="text-gray-400 hover:text-gray-600 transition-colors p-2 cursor-pointer"
                               title="Editar"
                             >
                               <Edit size={18} />
                             </button>
                             <button
-                              className="text-red-400 hover:text-red-600 transition-colors p-2"
+                              className="text-red-400 hover:text-red-600 transition-colors p-2 cursor-pointer"
                               title="Cancelar"
                             >
                               <Trash2 size={18} />
@@ -437,7 +437,7 @@ export default function AdminPage() {
                 workflows.
               </p>
               <Link href="/work_creation">
-                <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer">
                   Ir para Criação de Fluxos
                 </button>
               </Link>
