@@ -8,8 +8,9 @@ export interface VariableType {
 
 export interface DraggableComponentType {
   id: string;
-  label: string;
-  type: string;
-  color: string;
-  variables: VariableType[];
+  nome: string;
+  tipo: string;
+  cor: string;
+  variaveis: VariableType[];
+  descricao?: string;
 }
