@@ -12,7 +12,7 @@ const initialState: LoginFormState = {
   errors: {},
   message: "",
   success: false,
-  role: undefined,
+  usuario: undefined,
 };
 
 function LoginPage() {
@@ -25,6 +25,7 @@ function LoginPage() {
 
   const [showPassword, setShowPassword] = useState(false);
 
+  // Redireciona após sucesso baseado na role do usuário
   useEffect(() => {
     if (authState === "authenticated") {
       router.push("/admin");
@@ -32,16 +33,20 @@ function LoginPage() {
   }, [authState, router]);
 
   useEffect(() => {
-    if (state.success && state.role) {
+    if (state.success && state.usuario) {
+      // Opcional: Salvar dados do usuário no localStorage
+      localStorage.setItem("usuario", JSON.stringify(state.usuario));
+
       setTimeout(() => {
-        if (state.role === "gestor") {
+        // Redireciona baseado na role do usuário
+        if (state.usuario?.role === "gestor") {
           router.push("/admin");
-        } else if (state.role === "funcionario") {
+        } else if (state.usuario?.role === "funcionario") {
           router.push("/func");
         }
       }, 1500);
     }
-  }, [state.success, state.role, router]);
+  }, [state.success, state.usuario, router]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center px-4 sm:px-6 lg:px-8">
@@ -92,14 +97,19 @@ function LoginPage() {
             }`}
           >
             <p className="text-sm font-medium">{state.message}</p>
-            {state.success && state.role && (
-              <p className="text-xs mt-1">
-                Redirecionando para{" "}
-                {state.role === "gestor"
-                  ? "painel administrativo"
-                  : "painel do funcionário"}
-                ...
-              </p>
+            {state.success && state.usuario && (
+              <div className="text-xs mt-2 space-y-1">
+                <p>
+                  Bem-vindo, <strong>{state.usuario.nome}</strong>!
+                </p>
+                <p>
+                  Redirecionando para{" "}
+                  {state.usuario.role === "gestor"
+                    ? "painel administrativo"
+                    : "painel do funcionário"}
+                  ...
+                </p>
+              </div>
             )}
           </div>
         )}
