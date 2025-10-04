@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Users,
@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import AssignmentModal from "./components/AssignmentModal";
 import AdminHeader from "./components/header";
+import axios from "axios";
 
 export interface Employee {
   id: string;
@@ -35,7 +36,6 @@ export interface Employee {
 export interface Assignment {
   id: string;
   taskTitle: string;
-  taskType: "visita" | "reuniao" | "entrega" | "aprovacao";
   employeeId: string;
   employeeName: string;
   assignedBy: string;
@@ -59,43 +59,6 @@ export interface ActivityTemplate {
   }>;
 }
 
-const mockAssignments: Assignment[] = [
-  {
-    id: "1",
-    taskTitle: "Visita ao Cliente ABC",
-    taskType: "visita",
-    employeeId: "1",
-    employeeName: "João Silva",
-    assignedBy: "Admin",
-    assignedAt: "2024-10-04T10:00:00",
-    dueDate: "2024-10-05T14:00:00",
-    status: "pendente",
-    priority: "alta",
-    variables: {
-      destino: "Rua das Flores, 123 - São Paulo",
-      cliente: "ABC Ltda",
-      objetivo: "Apresentar nova proposta",
-    },
-  },
-  {
-    id: "2",
-    taskTitle: "Reunião de Planejamento",
-    taskType: "reuniao",
-    employeeId: "2",
-    employeeName: "Maria Santos",
-    assignedBy: "Admin",
-    assignedAt: "2024-10-04T11:00:00",
-    dueDate: "2024-10-06T10:00:00",
-    status: "em_progresso",
-    priority: "media",
-    variables: {
-      local: "Sala de Reuniões 2",
-      duracao: 120,
-      participantes: ["Equipe de Marketing", "Diretoria"],
-    },
-  },
-];
-
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<"assignments" | "create">(
     "assignments"
@@ -103,6 +66,7 @@ export default function AdminPage() {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("todas");
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [selectedAssignment, setSelectedAssignment] =
     useState<Assignment | null>(null);
 
@@ -125,35 +89,96 @@ export default function AdminPage() {
     return colors[priority];
   };
 
-  const getTypeColor = (type: Assignment["taskType"]) => {
-    const colors = {
-      visita: "bg-purple-500",
-      reuniao: "bg-orange-500",
-      entrega: "bg-teal-500",
-      aprovacao: "bg-blue-500",
-    };
-    return colors[type] || "bg-gray-500";
-  };
-
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(date);
+    if (!dateString) {
+      return "Data não informada";
+    }
+
+    try {
+      const date = new Date(dateString);
+
+      if (isNaN(date.getTime())) {
+        return "Data inválida";
+      }
+
+      return new Intl.DateTimeFormat("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(date);
+    } catch (error) {
+      console.error(
+        "Erro ao formatar data:",
+        error,
+        "Data original:",
+        dateString
+      );
+      return "Data inválida";
+    }
   };
 
-  const filteredAssignments = mockAssignments.filter((assignment) => {
+  const filteredAssignments = assignments.filter((assignment) => {
+    const taskTitle = assignment.taskTitle || "";
+    const employeeName = assignment.employeeName || "";
+    const status = assignment.status || "";
+
     const matchesSearch =
-      assignment.taskTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      assignment.employeeName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus =
-      filterStatus === "todas" || assignment.status === filterStatus;
+      taskTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      employeeName.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === "todas" || status === filterStatus;
     return matchesSearch && matchesStatus;
   });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/tarefas/`
+        );
+
+        const assignmentsData = Array.isArray(response.data)
+          ? response.data
+          : [];
+
+        // Validar e normalizar os dados recebidos
+        const normalizedAssignments = assignmentsData.map(
+          (assignment: any) => ({
+            id: assignment.id || "",
+            taskTitle: assignment.title,
+            employeeId: assignment.employeeId,
+            employeeName: assignment.atribuidoPara.nome,
+            assignedBy: assignment.assignedBy,
+            assignedAt: assignment.createdAt,
+            dueDate: assignment.dueDate,
+            status: assignment.status,
+            priority: assignment.priority,
+            variables: assignment.variables ?? {},
+          })
+        );
+
+        setAssignments(normalizedAssignments);
+      } catch (error) {
+        console.error("Erro ao buscar atribuições:", error);
+        setAssignments([]);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    try {
+      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL}/tarefas/${id}`);
+
+      setAssignments((prev) =>
+        prev.filter((assignment) => assignment.id !== id)
+      );
+    } catch (error) {
+      console.log("Erro ao cancelar tarefa:", error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -253,11 +278,6 @@ export default function AdminPage() {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center mb-2">
-                              <div
-                                className={`w-3 h-3 rounded-full ${getTypeColor(
-                                  assignment.taskType
-                                )} mr-3`}
-                              ></div>
                               <h3 className="text-lg font-semibold text-gray-900">
                                 {assignment.taskTitle}
                               </h3>
@@ -341,6 +361,7 @@ export default function AdminPage() {
                               <Edit size={18} />
                             </button>
                             <button
+                              onClick={() => handleDelete(assignment.id)}
                               className="text-red-400 hover:text-red-600 transition-colors p-2 cursor-pointer"
                               title="Cancelar"
                             >
@@ -378,6 +399,7 @@ export default function AdminPage() {
       <AssignmentModal
         setShowAssignModal={setShowAssignModal}
         showAssignModal={showAssignModal}
+        setAssignments={setAssignments}
       />
     </div>
   );

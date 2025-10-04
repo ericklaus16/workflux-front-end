@@ -11,14 +11,14 @@ import React, {
 // Tipos para o usuário
 export interface User {
   id: string;
-  name: string;
+  nome: string;
   email: string;
-  role: "gestor" | "funcionario" | "admin";
-  department?: string;
-  avatar?: string;
-  permissions?: string[];
-  createdAt?: string;
-  lastLogin?: string;
+  telefone: string;
+  setor: string;
+  role: "gestor" | "funcionario";
+  created_at: string;
+  updated_at: string;
+  estaAtivo: boolean;
 }
 
 // Estados possíveis da autenticação
@@ -146,7 +146,6 @@ export function UserProvider({ children }: UserProviderProps) {
         type: "LOGIN_SUCCESS",
         payload: {
           ...userData,
-          lastLogin: new Date().toISOString(),
         },
       });
     } catch (error) {
@@ -162,6 +161,7 @@ export function UserProvider({ children }: UserProviderProps) {
   const logout = () => {
     try {
       // Limpar localStorage
+      localStorage.removeItem("usuario");
       localStorage.removeItem("workflux_user");
       localStorage.removeItem("workflux_auth_token");
       localStorage.removeItem("workflux_last_login");
@@ -171,6 +171,7 @@ export function UserProvider({ children }: UserProviderProps) {
     } catch (error) {
       console.error("Erro ao fazer logout:", error);
     }
+    localStorage.removeItem("workflux_user");
   };
 
   // Função para atualizar dados do usuário
@@ -197,27 +198,39 @@ export function UserProvider({ children }: UserProviderProps) {
       dispatch({ type: "SET_LOADING", payload: true });
 
       const storedUser = localStorage.getItem("workflux_user");
+      const storedUserLegacy = localStorage.getItem("usuario"); // Para compatibilidade
       const storedToken = localStorage.getItem("workflux_auth_token");
 
-      if (storedUser && storedToken) {
-        const userData = JSON.parse(storedUser);
+      // Verificar se há dados válidos
+      const userData = storedUser || storedUserLegacy;
 
-        // Aqui você pode fazer uma verificação com a API se o token ainda é válido
-        // const response = await fetch('/api/verify-token', {
-        //   headers: { Authorization: `Bearer ${storedToken}` }
-        // });
+      if (userData && storedToken) {
+        try {
+          const parsedUser = JSON.parse(userData);
 
-        // if (response.ok) {
-        dispatch({ type: "LOGIN_SUCCESS", payload: userData });
-        // } else {
-        //   throw new Error('Token inválido');
-        // }
-      } else {
-        dispatch({ type: "SET_AUTH_STATE", payload: "unauthenticated" });
+          // Validar se os dados do usuário são válidos
+          if (parsedUser && parsedUser.id && parsedUser.email) {
+            dispatch({ type: "LOGIN_SUCCESS", payload: parsedUser });
+            return;
+          }
+        } catch (parseError) {
+          console.error(
+            "Erro ao fazer parse dos dados do usuário:",
+            parseError
+          );
+        }
       }
+
+      // Se chegou aqui, não há dados válidos
+      dispatch({ type: "SET_AUTH_STATE", payload: "unauthenticated" });
     } catch (error) {
       console.error("Erro ao verificar autenticação:", error);
-      logout(); // Limpar dados inválidos
+      // Limpar dados corrompidos
+      localStorage.removeItem("usuario");
+      localStorage.removeItem("workflux_user");
+      localStorage.removeItem("workflux_auth_token");
+      localStorage.removeItem("workflux_last_login");
+      dispatch({ type: "SET_AUTH_STATE", payload: "unauthenticated" });
     } finally {
       dispatch({ type: "SET_LOADING", payload: false });
     }

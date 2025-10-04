@@ -1,3 +1,4 @@
+import { useUser } from "@/app/context/User";
 import {
   LogOut,
   Settings,
@@ -14,6 +15,12 @@ type Props = {
 };
 
 function AdminHeader({ activeTab, setActiveTab }: Props) {
+  const { user, logout } = useUser();
+
+  const handleLogout = () => {
+    logout();
+  };
+
   return (
     <div className="w-64 bg-white shadow-lg border-r border-gray-200">
       <div className="p-6 border-b border-gray-200">
@@ -72,15 +79,22 @@ function AdminHeader({ activeTab, setActiveTab }: Props) {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-medium">AD</span>
+              <span className="text-white text-sm font-medium">
+                {user?.nome[0]}
+              </span>
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-700">Admin</p>
-              <p className="text-xs text-gray-500">admin@workflux.com</p>
+              <p className="text-sm font-medium text-gray-700">
+                {user?.nome.split(" ").slice(0, 2).join(" ")}
+              </p>
+              <p className="text-xs text-gray-500">{user?.email}</p>
             </div>
           </div>
           <Link
             href="/"
+            onClick={() => {
+              handleLogout();
+            }}
             className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
           >
             <LogOut size={18} />

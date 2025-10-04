@@ -6,16 +6,15 @@ import {
   CheckCircle2,
   Eye,
   Calendar,
-  MapPin,
   User,
-  ArrowRight,
-  Filter,
   Search,
   Bell,
   Settings,
   LogOut,
   Zap,
 } from "lucide-react";
+import { useUser } from "../context/User";
+import Link from "next/link";
 
 interface Activity {
   id: string;
@@ -117,6 +116,7 @@ export default function FuncPage() {
   );
   const [searchTerm, setSearchTerm] = useState("");
   const [filterPriority, setFilterPriority] = useState<string>("todas");
+  const { logout } = useUser();
 
   const getTypeColor = (type: Activity["type"]) => {
     const colors = {
@@ -366,9 +366,15 @@ export default function FuncPage() {
                   João Silva
                 </span>
               </div>
-              <button className="text-gray-400 hover:text-gray-600 transition-colors">
+              <Link
+                href="/"
+                onClick={() => {
+                  logout();
+                }}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
                 <LogOut size={20} />
-              </button>
+              </Link>
             </div>
           </div>
         </div>

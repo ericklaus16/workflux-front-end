@@ -25,17 +25,19 @@ function LoginPage() {
 
   const [showPassword, setShowPassword] = useState(false);
 
-  // Redireciona após sucesso baseado na role do usuário
-  useEffect(() => {
-    if (authState === "authenticated") {
-      router.push("/admin");
-    }
-  }, [authState, router]);
-
   useEffect(() => {
     if (state.success && state.usuario) {
-      // Opcional: Salvar dados do usuário no localStorage
-      localStorage.setItem("usuario", JSON.stringify(state.usuario));
+      login({
+        id: state.usuario.id,
+        nome: state.usuario.nome,
+        email: state.usuario.email,
+        role: state.usuario.role,
+        created_at: state.usuario.createdAt,
+        estaAtivo: state.usuario.estaAtivo,
+        setor: state.usuario.setor ?? "",
+        telefone: state.usuario.telefone,
+        updated_at: state.usuario.updatedAt,
+      });
 
       setTimeout(() => {
         // Redireciona baseado na role do usuário
@@ -47,6 +49,17 @@ function LoginPage() {
       }, 1500);
     }
   }, [state.success, state.usuario, router]);
+
+  if (userLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p>Verificando autenticação...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center px-4 sm:px-6 lg:px-8">
