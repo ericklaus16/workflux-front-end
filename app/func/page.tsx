@@ -12,6 +12,7 @@ import {
   Settings,
   LogOut,
   Zap,
+  House,
 } from "lucide-react";
 import { useUser } from "../context/User";
 import Link from "next/link";
@@ -174,7 +175,7 @@ export default function FuncPage() {
 
     return (
       <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[100vh] overflow-hidden">
           {/* Header */}
           <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
             <div className="flex items-start justify-between">
@@ -352,12 +353,24 @@ export default function FuncPage() {
 
             {/* User Menu */}
             <div className="flex items-center space-x-4">
-              <button className="text-gray-400 hover:text-gray-600 transition-colors">
+              <Link
+                href="/func"
+                className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+              >
+                <House size={20} />
+              </Link>
+              <button className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
                 <Bell size={20} />
               </button>
-              <button className="text-gray-400 hover:text-gray-600 transition-colors">
+              <button className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
                 <Settings size={20} />
               </button>
+              <Link
+                href="/perfil"
+                className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+              >
+                <User size={20} />
+              </Link>
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-medium">JS</span>
