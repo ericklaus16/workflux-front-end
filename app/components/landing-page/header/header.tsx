@@ -1,4 +1,5 @@
 import { Menu, X, Zap } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 function LandingPageHeader() {
@@ -38,12 +39,18 @@ function LandingPageHeader() {
             >
               Contato
             </a>
-            <button className="text-gray-600 hover:text-gray-900 transition-colors">
+            <Link
+              href="/login"
+              className="text-gray-600 hover:text-gray-900 transition-colors"
+            >
               Entrar
-            </button>
-            <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+            </Link>
+            <Link
+              href="/cadastro"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            >
               Começar Grátis
-            </button>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -68,9 +75,12 @@ function LandingPageHeader() {
               <a href="#contato" className="text-gray-600 hover:text-gray-900">
                 Contato
               </a>
-              <button className="text-left text-gray-600 hover:text-gray-900">
+              <Link
+                href="/login"
+                className="text-left text-gray-600 hover:text-gray-900"
+              >
                 Entrar
-              </button>
+              </Link>
               <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-left">
                 Começar Grátis
               </button>

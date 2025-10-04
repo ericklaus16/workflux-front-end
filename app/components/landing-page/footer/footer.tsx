@@ -12,7 +12,7 @@ function LandingPageFooter() {
             <span className="text-2xl font-bold">Workflux</span>
           </div>
           <div className="text-gray-400 text-center md:text-right">
-            <p>&copy; 2024 Workflux. Todos os direitos reservados.</p>
+            <p>&copy; 2025 Workflux. Todos os direitos reservados.</p>
             <p className="text-sm mt-1">
               Transformando empresas através da automação visual
             </p>
