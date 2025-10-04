@@ -15,7 +15,9 @@ import {
   Settings,
   LogOut,
   Zap,
+  House,
 } from "lucide-react";
+import Link from "next/link";
 
 interface Activity {
   id: string;
@@ -174,7 +176,7 @@ export default function FuncPage() {
 
     return (
       <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[100vh] overflow-hidden">
           {/* Header */}
           <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
             <div className="flex items-start justify-between">
@@ -283,11 +285,10 @@ export default function FuncPage() {
                     {selectedActivity.workflow.steps.map((step, index) => (
                       <div key={step.id} className="flex items-center">
                         <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
-                            step.completed
-                              ? "bg-green-500 text-white"
-                              : "bg-gray-200 text-gray-500"
-                          }`}
+                          className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${step.completed
+                            ? "bg-green-500 text-white"
+                            : "bg-gray-200 text-gray-500"
+                            }`}
                         >
                           {step.completed ? (
                             <CheckCircle2 size={16} />
@@ -296,11 +297,10 @@ export default function FuncPage() {
                           )}
                         </div>
                         <span
-                          className={`${
-                            step.completed
-                              ? "text-green-700 line-through"
-                              : "text-gray-700"
-                          }`}
+                          className={`${step.completed
+                            ? "text-green-700 line-through"
+                            : "text-gray-700"
+                            }`}
                         >
                           {step.name}
                         </span>
@@ -352,12 +352,18 @@ export default function FuncPage() {
 
             {/* User Menu */}
             <div className="flex items-center space-x-4">
-              <button className="text-gray-400 hover:text-gray-600 transition-colors">
+              <Link href="/func" className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
+                <House size={20} />
+              </Link>
+              <button className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
                 <Bell size={20} />
               </button>
-              <button className="text-gray-400 hover:text-gray-600 transition-colors">
+              <button className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
                 <Settings size={20} />
               </button>
+              <Link href="/perfil" className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
+                <User size={20} />
+              </Link>
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-medium">JS</span>
@@ -391,11 +397,10 @@ export default function FuncPage() {
             <nav className="-mb-px flex space-x-8">
               <button
                 onClick={() => setActiveTab("atividades")}
-                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === "atividades"
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
+                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === "atividades"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
               >
                 <div className="flex items-center">
                   <Clock className="w-4 h-4 mr-2" />
@@ -404,11 +409,10 @@ export default function FuncPage() {
               </button>
               <button
                 onClick={() => setActiveTab("concluidas")}
-                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                  activeTab === "concluidas"
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
+                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === "concluidas"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  }`}
               >
                 <div className="flex items-center">
                   <CheckCircle2 className="w-4 h-4 mr-2" />
