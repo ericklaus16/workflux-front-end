@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import {
   ReactFlow,
   Node,
@@ -17,6 +17,8 @@ import {
 import "@xyflow/react/dist/style.css";
 import { Plus } from "lucide-react";
 import NodeCreationModal from "./components/NodeCreation";
+import { DraggableComponentType, VariableType } from "../interfaces/Node";
+import axios from "axios";
 
 interface NodeData {
   label: string;
@@ -93,74 +95,6 @@ const nodeTypes = {
 
 type CustomNode = Node<NodeData>;
 
-const DraggableComponents = [
-  {
-    id: "visita",
-    label: "Visita",
-    type: "default",
-    color: "bg-purple-500",
-    variables: [
-      { name: "destino", type: "string" as const, value: null, required: true },
-      {
-        name: "horario",
-        type: "datetime" as const,
-        value: null,
-        required: true,
-      },
-    ],
-  },
-  {
-    id: "reuniao",
-    label: "Reunião",
-    type: "default",
-    color: "bg-orange-500",
-    variables: [
-      { name: "local", type: "string" as const, value: null, required: true },
-      { name: "duracao", type: "number" as const, value: null, required: true },
-    ],
-  },
-  {
-    id: "entrega",
-    label: "Entrega",
-    type: "default",
-    color: "bg-teal-500",
-    variables: [
-      {
-        name: "endereco",
-        type: "string" as const,
-        value: null,
-        required: true,
-      },
-      { name: "prazo", type: "date" as const, value: null, required: true },
-      {
-        name: "prioridade",
-        type: "select" as const,
-        value: null,
-        required: true,
-        options: ["Baixa", "Média", "Alta"],
-      },
-    ],
-  },
-];
-
-// Tipo para as variáveis
-type VariableType = {
-  name: string;
-  type: "string" | "number" | "date" | "datetime" | "select" | "array";
-  value: any;
-  required: boolean;
-  options?: string[]; // Para campos do tipo select
-};
-
-// Tipo atualizado para os componentes
-type DraggableComponentType = {
-  id: string;
-  label: string;
-  type: string;
-  color: string;
-  variables: VariableType[];
-};
-
 const DraggableComponent = ({
   component,
 }: {
@@ -170,7 +104,6 @@ const DraggableComponent = ({
     event: React.DragEvent,
     componentData: DraggableComponentType
   ) => {
-    // Passa o componente completo com suas variáveis
     event.dataTransfer.setData(
       "application/reactflow",
       JSON.stringify(componentData)
@@ -178,23 +111,54 @@ const DraggableComponent = ({
     event.dataTransfer.effectAllowed = "move";
   };
 
+  // Garante que variables sempre seja um array
+  const variables = component.variables || [];
+
   return (
     <div
-      className={`${component.color} text-white p-4 rounded-lg cursor-grab active:cursor-grabbing shadow-lg hover:shadow-xl transition-shadow`}
+      className={`${
+        component.color || "bg-blue-500"
+      } text-white p-4 rounded-lg cursor-grab active:cursor-grabbing shadow-lg hover:shadow-xl transition-all duration-200 border border-white/20`}
       onDragStart={(event) => onDragStart(event, component)}
       draggable
     >
-      <div className="text-center font-medium">{component.label}</div>
-      {component.variables.length > 0 && (
-        <div className="text-xs mt-2 opacity-75">
-          <div>Variáveis:</div>
-          {component.variables.map((variable, index) => (
-            <div key={index} className="truncate">
-              • {variable.name} {variable.required && "*"}
+      <div className="text-center font-semibold text-sm mb-2">
+        {component.label}
+      </div>
+
+      <div className="text-xs opacity-90">
+        {variables.length > 0 ? (
+          <div>
+            <div className="font-medium mb-1">
+              Variáveis ({variables.length}):
             </div>
-          ))}
-        </div>
-      )}
+            <div className="space-y-1">
+              {variables.slice(0, 3).map((variable, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between bg-black/20 rounded px-2 py-1"
+                >
+                  <span className="truncate">{variable.name}</span>
+                  <span className="text-xs opacity-75 ml-1">
+                    {variable.type}
+                    {variable.required && "*"}
+                  </span>
+                </div>
+              ))}
+              {variables.length > 3 && (
+                <div className="text-center opacity-75">
+                  +{variables.length - 3} mais...
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-2">
+            <div className="font-medium">Componente Simples</div>
+            <div className="opacity-75">Sem variáveis configuradas</div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -444,8 +408,108 @@ function FlowComponent() {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<CustomNode | null>(null);
-  const [customComponents, setCustomComponents] = useState(DraggableComponents);
+  const [customComponents, setCustomComponents] = useState<
+    DraggableComponentType[]
+  >([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { screenToFlowPosition } = useReactFlow();
+
+  useEffect(() => {
+    const fetchNodes = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+        if (!apiUrl) {
+          throw new Error("NEXT_PUBLIC_API_URL não está configurada");
+        }
+
+        console.log("Fazendo requisição para:", `${apiUrl}/nodes`);
+
+        const response = await axios.get(`${apiUrl}/nodes`);
+
+        console.log("Dados recebidos:", response.data);
+
+        // Mapear os dados da API para o formato esperado pelo componente
+        const processedData = response.data.map((item: any) => ({
+          id: item.id,
+          label: item.nome, // API usa 'nome', componente espera 'label'
+          type: item.tipo || "default",
+          color: getColorClass(item.cor), // Converter cor para classe CSS
+          variables: item.variaveis || [], // API usa 'variaveis', componente espera 'variables'
+        }));
+
+        setCustomComponents(processedData);
+      } catch (err: any) {
+        console.error("Erro ao buscar nós:", err);
+        setError(err.message || "Erro ao carregar componentes");
+
+        // Dados de fallback caso a API falhe
+        const fallbackData: DraggableComponentType[] = [
+          {
+            id: "visita",
+            label: "Visita",
+            type: "default",
+            color: "bg-purple-500",
+            variables: [
+              { name: "destino", type: "string", value: null, required: true },
+              {
+                name: "horario",
+                type: "datetime",
+                value: null,
+                required: true,
+              },
+            ],
+          },
+          {
+            id: "reuniao",
+            label: "Reunião",
+            type: "default",
+            color: "bg-orange-500",
+            variables: [
+              { name: "local", type: "string", value: null, required: true },
+              { name: "duracao", type: "number", value: null, required: true },
+            ],
+          },
+        ];
+
+        setCustomComponents(fallbackData);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNodes();
+  }, []);
+
+  const getColorClass = (cor: string): string => {
+    const colorMap: { [key: string]: string } = {
+      blue: "bg-blue-500",
+      red: "bg-red-500",
+      green: "bg-green-500",
+      purple: "bg-purple-500",
+      orange: "bg-orange-500",
+      teal: "bg-teal-500",
+      indigo: "bg-indigo-500",
+      pink: "bg-pink-500",
+      yellow: "bg-yellow-500",
+      gray: "bg-gray-500",
+    };
+
+    return colorMap[cor] || "bg-blue-500";
+  };
+
+  const handleSaveCustomNode = (nodeData: any) => {
+    const newComponent: DraggableComponentType = {
+      ...nodeData,
+      variables: nodeData.variables || [],
+    };
+
+    setCustomComponents((prev) => [...prev, newComponent]);
+  };
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -503,12 +567,12 @@ function FlowComponent() {
 
         const newNode: CustomNode = {
           id: getId(),
-          type: "default", // Usar o tipo customizado
+          type: "default",
           position,
           data: {
             label: componentData.label,
             componentId: componentData.id,
-            configuredVariables: [...componentData.variables],
+            configuredVariables: [...(componentData.variables || [])],
           },
         };
 
@@ -535,6 +599,18 @@ function FlowComponent() {
         </div>
 
         <div className="space-y-4">
+          {loading ? (
+            <div className="text-center py-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+              <p className="text-sm text-gray-600">Carregando componentes...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-4">
+              <div className="text-red-500 text-sm mb-2">⚠️ {error}</div>
+              <p className="text-xs text-gray-500">Usando dados locais</p>
+            </div>
+          ) : null}
+
           {customComponents.map((component) => (
             <DraggableComponent key={component.id} component={component} />
           ))}
@@ -564,7 +640,7 @@ function FlowComponent() {
           onNodeClick={onNodeClick}
           onPaneClick={onPaneClick}
           fitView
-          className="bg-gray-900" // Fundo escuro como Blueprint
+          className="bg-gray-900"
         >
           <Controls />
           <Background color="#333" gap={20} />
@@ -579,7 +655,7 @@ function FlowComponent() {
       <NodeCreationModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSave={() => {}}
+        onSave={handleSaveCustomNode}
       />
     </div>
   );
