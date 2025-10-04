@@ -7,7 +7,6 @@ import LandingPageCTA from "./components/landing-page/cta/cta";
 import LandingPageContact from "./components/landing-page/contact/contact";
 import LandingPageFooter from "./components/landing-page/footer/footer";
 
-// Teste
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white">
