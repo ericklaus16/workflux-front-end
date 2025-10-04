@@ -1,7 +1,7 @@
 "use server";
 
 import axios from "axios";
-import { LoginFormState } from "@/lib/types/definition";
+import { LoginFormState, Usuario } from "@/lib/types/definition";
 
 export async function postLogin(
   prevState: LoginFormState,
@@ -21,20 +21,42 @@ export async function postLogin(
       errors.senha = "Senha deve ter no mínimo 8 caracteres";
     }
 
+    if (Object.keys(errors).length > 0) {
+      return {
+        errors,
+        message: "Por favor, corrija os erros no formulário",
+        success: false,
+      };
+    }
+
     const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/auth/usuarios/login`;
+
+    console.log("API URL:", apiUrl);
 
     const payload = {
       email: email.trim(),
       senha: password,
     };
 
+    console.log("Enviando para o backend:", payload);
+
     const response = await axios.post(apiUrl, payload);
 
-    // console.log("Resposta da API:", response.data.role);
+    console.log("Resposta do backend:", response.data);
 
-    const userRole = response.data.role;
+    const usuario: Usuario = {
+      id: response.data.usuario.id,
+      nome: response.data.usuario.nome,
+      email: response.data.usuario.email,
+      telefone: response.data.usuario.telefone,
+      setor: response.data.usuario.setor,
+      role: response.data.usuario.role,
+      estaAtivo: response.data.usuario.estaAtivo,
+      createdAt: response.data.usuario.createdAt,
+      updatedAt: response.data.usuario.updatedAt,
+    };
 
-    if (!userRole || !["gestor", "funcionario"].includes(userRole)) {
+    if (!usuario.role || !["gestor", "funcionario"].includes(usuario.role)) {
       return {
         errors: {},
         message: "Erro ao identificar tipo de usuário.",
@@ -42,17 +64,34 @@ export async function postLogin(
       };
     }
 
+    // Aqui você pode salvar os dados do usuário no localStorage ou cookies
+    // localStorage.setItem('usuario', JSON.stringify(usuario));
+
     return {
       errors: {},
       message: "Login realizado com sucesso! Redirecionando...",
       success: true,
-      role: userRole, // Adiciona a role ao retorno
+      usuario,
     };
   } catch (error: any) {
     console.error("Erro ao realizar login:", error);
+
+    if (axios.isAxiosError(error)) {
+      const errorMessage =
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        "Email ou senha incorretos. Tente novamente.";
+
+      return {
+        errors: {},
+        message: errorMessage,
+        success: false,
+      };
+    }
+
     return {
       errors: {},
-      message: "Erro ao realizar login. Tente novamente mais tarde.",
+      message: "Erro inesperado. Tente novamente mais tarde.",
       success: false,
     };
   }
