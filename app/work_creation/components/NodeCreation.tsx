@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { X, Plus, Trash2, Save } from "lucide-react";
+import axios from "axios";
 
 interface Variable {
   id: string;
@@ -99,25 +100,41 @@ export default function NodeCreationModal({
   };
 
   const handleSave = () => {
-    if (!nodeData.name.trim()) {
-      alert("Por favor, digite o nome do nó");
-      return;
-    }
-
     const componentData = {
-      id: nodeData.name.toLowerCase().replace(/\s+/g, "_"),
-      label: nodeData.name,
-      type: "default",
-      color: nodeData.color,
-      description: nodeData.description,
-      variables: nodeData.variables.map((v) => ({
+      nome: nodeData.name,
+      tipo: "default",
+      cor: nodeData.color,
+      descricao: nodeData.description,
+      variaveis: nodeData.variables.map((v) => ({
         name: v.name,
         type: v.type,
         value: null,
         required: v.required,
         ...(v.options ? { options: v.options } : {}),
       })),
+      usuarioId: "123e4567-e89b-12d3-a456-426614174000",
     };
+
+    // const componentData = {
+    //   nome: "Aprovação de Documento",
+    //   tipo: "default",
+    //   cor: "blue",
+    //   descricao: "Descrição muito amigável",
+    //   variaveis: [],
+    //   usuarioId: "123e4567-e89b-12d3-a456-426614174000",
+    // };
+
+    const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/nodes`;
+    console.log(apiUrl);
+
+    axios.post(apiUrl, {
+      nome: "Aprovação de Documento",
+      tipo: "default",
+      cor: "blue",
+      descricao: "Descrição muito amigável",
+      variaveis: [],
+      usuarioId: "57009c51-1d98-49d1-a501-d6fea5cd7159",
+    });
 
     onSave(componentData);
     resetForm();
