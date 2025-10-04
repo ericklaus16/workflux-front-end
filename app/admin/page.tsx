@@ -8,23 +8,20 @@ import {
   Settings,
   Bell,
   Search,
-  Filter,
   Calendar,
   Clock,
   User,
   Eye,
   Edit,
   Trash2,
-  CheckCircle2,
-  AlertCircle,
   Zap,
   LogOut,
-  Send,
   UserCheck,
   Workflow,
 } from "lucide-react";
+import AssignmentModal from "./components/AssignmentModal";
 
-interface Employee {
+export interface Employee {
   id: string;
   name: string;
   email: string;
@@ -34,7 +31,7 @@ interface Employee {
   avatar?: string;
 }
 
-interface Assignment {
+export interface Assignment {
   id: string;
   taskTitle: string;
   taskType: "visita" | "reuniao" | "entrega" | "aprovacao";
@@ -48,7 +45,7 @@ interface Assignment {
   variables: Record<string, any>;
 }
 
-interface ActivityTemplate {
+export interface ActivityTemplate {
   id: string;
   name: string;
   type: string;
@@ -60,33 +57,6 @@ interface ActivityTemplate {
     options?: string[];
   }>;
 }
-
-const mockEmployees: Employee[] = [
-  {
-    id: "1",
-    name: "João Silva",
-    email: "joao@empresa.com",
-    role: "Vendedor",
-    department: "Vendas",
-    status: "ativo",
-  },
-  {
-    id: "2",
-    name: "Maria Santos",
-    email: "maria@empresa.com",
-    role: "Analista",
-    department: "Marketing",
-    status: "ativo",
-  },
-  {
-    id: "3",
-    name: "Pedro Costa",
-    email: "pedro@empresa.com",
-    role: "Coordenador",
-    department: "Operações",
-    status: "ativo",
-  },
-];
 
 const mockAssignments: Assignment[] = [
   {
@@ -125,47 +95,6 @@ const mockAssignments: Assignment[] = [
   },
 ];
 
-const mockActivityTemplates: ActivityTemplate[] = [
-  {
-    id: "visita",
-    name: "Visita",
-    type: "visita",
-    description: "Visita a cliente ou prospect",
-    variables: [
-      { name: "destino", type: "string", required: true },
-      { name: "cliente", type: "string", required: true },
-      { name: "objetivo", type: "string", required: false },
-    ],
-  },
-  {
-    id: "reuniao",
-    name: "Reunião",
-    type: "reuniao",
-    description: "Reunião interna ou externa",
-    variables: [
-      { name: "local", type: "string", required: true },
-      { name: "duracao", type: "number", required: true },
-      { name: "participantes", type: "array", required: false },
-    ],
-  },
-  {
-    id: "entrega",
-    name: "Entrega",
-    type: "entrega",
-    description: "Entrega de documentos ou produtos",
-    variables: [
-      { name: "endereco", type: "string", required: true },
-      { name: "prazo", type: "date", required: true },
-      {
-        name: "prioridade",
-        type: "select",
-        required: true,
-        options: ["Baixa", "Média", "Alta"],
-      },
-    ],
-  },
-];
-
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<"assignments" | "create">(
     "assignments"
@@ -175,17 +104,6 @@ export default function AdminPage() {
   const [filterStatus, setFilterStatus] = useState("todas");
   const [selectedAssignment, setSelectedAssignment] =
     useState<Assignment | null>(null);
-
-  // Estados do modal de atribuição
-  const [assignmentForm, setAssignmentForm] = useState({
-    employeeId: "",
-    activityId: "",
-    title: "",
-    description: "",
-    dueDate: "",
-    priority: "media" as Assignment["priority"],
-    variables: {} as Record<string, any>,
-  });
 
   const getStatusColor = (status: Assignment["status"]) => {
     const colors = {
@@ -227,26 +145,6 @@ export default function AdminPage() {
     }).format(date);
   };
 
-  const handleAssignmentSubmit = () => {
-    // Lógica para criar a atribuição
-    console.log("Nova atribuição:", assignmentForm);
-    setShowAssignModal(false);
-    // Reset form
-    setAssignmentForm({
-      employeeId: "",
-      activityId: "",
-      title: "",
-      description: "",
-      dueDate: "",
-      priority: "media",
-      variables: {},
-    });
-  };
-
-  const selectedActivity = mockActivityTemplates.find(
-    (a) => a.id === assignmentForm.activityId
-  );
-
   const filteredAssignments = mockAssignments.filter((assignment) => {
     const matchesSearch =
       assignment.taskTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -255,287 +153,6 @@ export default function AdminPage() {
       filterStatus === "todas" || assignment.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
-
-  // Modal de Atribuição
-  const AssignmentModal = () => {
-    if (!showAssignModal) return null;
-
-    return (
-      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
-          {/* Header */}
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-gray-900">
-                Nova Atribuição
-              </h2>
-              <button
-                onClick={() => setShowAssignModal(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
-              >
-                ×
-              </button>
-            </div>
-          </div>
-
-          {/* Content */}
-          <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)]">
-            <div className="space-y-6">
-              {/* Funcionário */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Funcionário *
-                </label>
-                <select
-                  value={assignmentForm.employeeId}
-                  onChange={(e) =>
-                    setAssignmentForm((prev) => ({
-                      ...prev,
-                      employeeId: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Selecione um funcionário</option>
-                  {mockEmployees
-                    .filter((emp) => emp.status === "ativo")
-                    .map((employee) => (
-                      <option key={employee.id} value={employee.id}>
-                        {employee.name} - {employee.role}
-                      </option>
-                    ))}
-                </select>
-              </div>
-
-              {/* Tipo de Atividade */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tipo de Atividade *
-                </label>
-                <select
-                  value={assignmentForm.activityId}
-                  onChange={(e) =>
-                    setAssignmentForm((prev) => ({
-                      ...prev,
-                      activityId: e.target.value,
-                      variables: {}, // Reset variables when activity changes
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Selecione o tipo de atividade</option>
-                  {mockActivityTemplates.map((activity) => (
-                    <option key={activity.id} value={activity.id}>
-                      {activity.name} - {activity.description}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Título e Descrição */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Título da Tarefa *
-                  </label>
-                  <input
-                    type="text"
-                    value={assignmentForm.title}
-                    onChange={(e) =>
-                      setAssignmentForm((prev) => ({
-                        ...prev,
-                        title: e.target.value,
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    placeholder="Ex: Visita ao Cliente ABC"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Prazo *
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={assignmentForm.dueDate}
-                    onChange={(e) =>
-                      setAssignmentForm((prev) => ({
-                        ...prev,
-                        dueDate: e.target.value,
-                      }))
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Descrição (Opcional)
-                </label>
-                <textarea
-                  value={assignmentForm.description}
-                  onChange={(e) =>
-                    setAssignmentForm((prev) => ({
-                      ...prev,
-                      description: e.target.value,
-                    }))
-                  }
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="Descrição detalhada da tarefa..."
-                />
-              </div>
-
-              {/* Prioridade */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Prioridade
-                </label>
-                <select
-                  value={assignmentForm.priority}
-                  onChange={(e) =>
-                    setAssignmentForm((prev) => ({
-                      ...prev,
-                      priority: e.target.value as Assignment["priority"],
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="baixa">Baixa</option>
-                  <option value="media">Média</option>
-                  <option value="alta">Alta</option>
-                </select>
-              </div>
-
-              {/* Variáveis da Atividade */}
-              {selectedActivity && (
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                    Configurar Variáveis
-                  </h3>
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-4">
-                    {selectedActivity.variables.map((variable) => (
-                      <div key={variable.name}>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          {variable.name.charAt(0).toUpperCase() +
-                            variable.name.slice(1)}
-                          {variable.required && (
-                            <span className="text-red-500 ml-1">*</span>
-                          )}
-                        </label>
-                        {variable.type === "select" ? (
-                          <select
-                            value={
-                              assignmentForm.variables[variable.name] || ""
-                            }
-                            onChange={(e) =>
-                              setAssignmentForm((prev) => ({
-                                ...prev,
-                                variables: {
-                                  ...prev.variables,
-                                  [variable.name]: e.target.value,
-                                },
-                              }))
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                          >
-                            <option value="">Selecione...</option>
-                            {variable.options?.map((option) => (
-                              <option key={option} value={option}>
-                                {option}
-                              </option>
-                            ))}
-                          </select>
-                        ) : variable.type === "array" ? (
-                          <textarea
-                            value={
-                              Array.isArray(
-                                assignmentForm.variables[variable.name]
-                              )
-                                ? assignmentForm.variables[variable.name].join(
-                                    ", "
-                                  )
-                                : assignmentForm.variables[variable.name] || ""
-                            }
-                            onChange={(e) =>
-                              setAssignmentForm((prev) => ({
-                                ...prev,
-                                variables: {
-                                  ...prev.variables,
-                                  [variable.name]: e.target.value
-                                    .split(",")
-                                    .map((item) => item.trim()),
-                                },
-                              }))
-                            }
-                            placeholder="Digite valores separados por vírgula"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                            rows={2}
-                          />
-                        ) : (
-                          <input
-                            type={
-                              variable.type === "date"
-                                ? "date"
-                                : variable.type === "number"
-                                ? "number"
-                                : "text"
-                            }
-                            value={
-                              assignmentForm.variables[variable.name] || ""
-                            }
-                            onChange={(e) =>
-                              setAssignmentForm((prev) => ({
-                                ...prev,
-                                variables: {
-                                  ...prev.variables,
-                                  [variable.name]:
-                                    variable.type === "number"
-                                      ? Number(e.target.value)
-                                      : e.target.value,
-                                },
-                              }))
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                            placeholder={`Digite ${variable.name}`}
-                          />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="p-6 border-t border-gray-200 bg-gray-50">
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setShowAssignModal(false)}
-                className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleAssignmentSubmit}
-                disabled={
-                  !assignmentForm.employeeId ||
-                  !assignmentForm.activityId ||
-                  !assignmentForm.title
-                }
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center cursor-pointer"
-              >
-                <Send className="w-4 h-4 mr-2" />
-                Atribuir Tarefa
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -830,7 +447,10 @@ export default function AdminPage() {
       </div>
 
       {/* Modal de Atribuição */}
-      <AssignmentModal />
+      <AssignmentModal
+        setShowAssignModal={setShowAssignModal}
+        showAssignModal={showAssignModal}
+      />
     </div>
   );
 }

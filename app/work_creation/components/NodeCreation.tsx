@@ -112,27 +112,23 @@ export default function NodeCreationModal({
         required: v.required,
         ...(v.options ? { options: v.options } : {}),
       })),
-      usuarioId: "123e4567-e89b-12d3-a456-426614174000",
+      usuarioId: "57009c51-1d98-49d1-a501-d6fea5cd7159",
     };
 
-    // const componentData = {
-    //   nome: "Aprovação de Documento",
-    //   tipo: "default",
-    //   cor: "blue",
-    //   descricao: "Descrição muito amigável",
-    //   variaveis: [],
-    //   usuarioId: "123e4567-e89b-12d3-a456-426614174000",
-    // };
-
     const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/nodes`;
-    console.log(apiUrl);
 
     axios.post(apiUrl, {
-      nome: "Aprovação de Documento",
+      nome: nodeData.name,
       tipo: "default",
-      cor: "blue",
-      descricao: "Descrição muito amigável",
-      variaveis: [],
+      cor: nodeData.color,
+      descricao: nodeData.description,
+      variaveis: nodeData.variables.map((v) => ({
+        name: v.name,
+        type: v.type,
+        value: null,
+        required: v.required,
+        ...(v.options ? { options: v.options } : {}),
+      })),
       usuarioId: "57009c51-1d98-49d1-a501-d6fea5cd7159",
     });
 

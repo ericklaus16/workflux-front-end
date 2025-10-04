@@ -1,44 +1,36 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useActionState, useState, useEffect } from "react";
 import Link from "next/link";
-import { Zap, Eye, EyeOff, ArrowLeft, Check } from "lucide-react";
+import { Zap, Eye, EyeOff, ArrowLeft, Check, Loader2 } from "lucide-react";
+import { postRegister } from "@/lib/actions/auth/post-register";
+import { RegisterFormState } from "@/lib/types/definition";
+import { useRouter } from "next/navigation";
+
+const initialState: RegisterFormState = {
+  errors: {},
+  message: "",
+  success: false,
+};
 
 export default function RegisterPage() {
+  const router = useRouter();
+  const [state, formAction, isPending] = useActionState(
+    postRegister,
+    initialState
+  );
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    company: "",
-    password: "",
-    confirmPassword: "",
-    agreeTerms: false,
-    newsletter: false,
-  });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      alert("As senhas não coincidem!");
-      return;
+  // Redireciona após sucesso
+  useEffect(() => {
+    if (state.success) {
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
     }
-    if (!formData.agreeTerms) {
-      alert("Você deve aceitar os termos de serviço!");
-      return;
-    }
-
-    console.log("Register data:", formData);
-  };
+  }, [state.success, router]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
@@ -77,7 +69,19 @@ export default function RegisterPage() {
         </div>
 
         <div className="bg-white/70 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 p-8">
-          <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Mensagens de Feedback */}
+          {state.message && (
+            <div
+              className={`mb-6 p-4 rounded-lg ${state.success
+                  ? "bg-green-50 text-green-800 border border-green-200"
+                  : "bg-red-50 text-red-800 border border-red-200"
+                }`}
+            >
+              <p className="text-sm font-medium">{state.message}</p>
+            </div>
+          )}
+
+          <form action={formAction} className="space-y-5">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label
@@ -91,11 +95,15 @@ export default function RegisterPage() {
                   name="firstName"
                   type="text"
                   required
-                  value={formData.firstName}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors placeholder-gray-400"
+                  disabled={isPending}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors placeholder-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="João"
                 />
+                {state.errors?.nome && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {state.errors.nome}
+                  </p>
+                )}
               </div>
               <div>
                 <label
@@ -109,9 +117,8 @@ export default function RegisterPage() {
                   name="lastName"
                   type="text"
                   required
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors placeholder-gray-400"
+                  disabled={isPending}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors placeholder-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="Silva"
                 />
               </div>
@@ -129,28 +136,48 @@ export default function RegisterPage() {
                 name="email"
                 type="email"
                 required
-                value={formData.email}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors placeholder-gray-400"
+                disabled={isPending}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors placeholder-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
                 placeholder="joao@empresa.com"
+              />
+              {state.errors?.email && (
+                <p className="text-red-500 text-xs mt-1">
+                  {state.errors.email}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label
+                htmlFor="telefone"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Telefone <span className="text-gray-400">(opcional)</span>
+              </label>
+              <input
+                id="telefone"
+                name="telefone"
+                type="tel"
+                disabled={isPending}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors placeholder-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                placeholder="(11) 99999-9999"
               />
             </div>
 
             <div>
               <label
-                htmlFor="company"
+                htmlFor="setor"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Empresa <span className="text-gray-400">(opcional)</span>
+                Setor <span className="text-gray-400">(opcional)</span>
               </label>
               <input
-                id="company"
-                name="company"
+                id="setor"
+                name="setor"
                 type="text"
-                value={formData.company}
-                onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors placeholder-gray-400"
-                placeholder="Nome da sua empresa"
+                disabled={isPending}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors placeholder-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                placeholder="Ex: TI, RH, Financeiro"
               />
             </div>
 
@@ -167,19 +194,25 @@ export default function RegisterPage() {
                   name="password"
                   type={showPassword ? "text" : "password"}
                   required
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors placeholder-gray-400"
+                  minLength={8}
+                  disabled={isPending}
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors placeholder-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="Mínimo 8 caracteres"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  disabled={isPending}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
+              {state.errors?.senha && (
+                <p className="text-red-500 text-xs mt-1">
+                  {state.errors.senha}
+                </p>
+              )}
             </div>
 
             <div>
@@ -195,15 +228,16 @@ export default function RegisterPage() {
                   name="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   required
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors placeholder-gray-400"
+                  minLength={8}
+                  disabled={isPending}
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors placeholder-gray-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="Digite a senha novamente"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  disabled={isPending}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 disabled:cursor-not-allowed"
                 >
                   {showConfirmPassword ? (
                     <EyeOff size={20} />
@@ -212,6 +246,11 @@ export default function RegisterPage() {
                   )}
                 </button>
               </div>
+              {state.errors?.confirmPassword && (
+                <p className="text-red-500 text-xs mt-1">
+                  {state.errors.confirmPassword}
+                </p>
+              )}
             </div>
 
             <div className="space-y-3">
@@ -221,9 +260,8 @@ export default function RegisterPage() {
                   name="agreeTerms"
                   type="checkbox"
                   required
-                  checked={formData.agreeTerms}
-                  onChange={handleInputChange}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1"
+                  disabled={isPending}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1 disabled:cursor-not-allowed"
                 />
                 <label
                   htmlFor="agreeTerms"
@@ -251,9 +289,8 @@ export default function RegisterPage() {
                   id="newsletter"
                   name="newsletter"
                   type="checkbox"
-                  checked={formData.newsletter}
-                  onChange={handleInputChange}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1"
+                  disabled={isPending}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1 disabled:cursor-not-allowed"
                 />
                 <label
                   htmlFor="newsletter"
@@ -267,9 +304,17 @@ export default function RegisterPage() {
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-[1.02] shadow-lg hover:shadow-xl cursor-pointer"
+              disabled={isPending}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-4 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-[1.02] shadow-lg hover:shadow-xl cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
-              Criar Conta Gratuita
+              {isPending ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Criando conta...
+                </>
+              ) : (
+                "Criar Conta Gratuita"
+              )}
             </button>
 
             <div className="relative">

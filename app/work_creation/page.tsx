@@ -21,8 +21,8 @@ import { DraggableComponentType, VariableType } from "../interfaces/Node";
 import axios from "axios";
 
 interface NodeData {
-  label: string;
-  configuredVariables?: VariableType[];
+  nome: string;
+  variaveisConfiguradas?: VariableType[];
   [key: string]: any;
 }
 
@@ -112,18 +112,18 @@ const DraggableComponent = ({
   };
 
   // Garante que variables sempre seja um array
-  const variables = component.variables || [];
+  const variables = component.variaveis || [];
 
   return (
     <div
       className={`${
-        component.color || "bg-blue-500"
+        component.cor || "bg-blue-500"
       } text-white p-4 rounded-lg cursor-grab active:cursor-grabbing shadow-lg hover:shadow-xl transition-all duration-200 border border-white/20`}
       onDragStart={(event) => onDragStart(event, component)}
       draggable
     >
       <div className="text-center font-semibold text-sm mb-2">
-        {component.label}
+        {component.nome}
       </div>
 
       <div className="text-xs opacity-90">
@@ -167,7 +167,7 @@ const initialNodes: CustomNode[] = [
   {
     id: "1",
     type: "input",
-    data: { label: "Start" },
+    data: { nome: "Start" },
     position: { x: 250, y: 25 },
   },
 ];
@@ -431,15 +431,13 @@ function FlowComponent() {
 
         const response = await axios.get(`${apiUrl}/nodes`);
 
-        console.log("Dados recebidos:", response.data);
-
         // Mapear os dados da API para o formato esperado pelo componente
         const processedData = response.data.map((item: any) => ({
           id: item.id,
-          label: item.nome, // API usa 'nome', componente espera 'label'
-          type: item.tipo || "default",
-          color: getColorClass(item.cor), // Converter cor para classe CSS
-          variables: item.variaveis || [], // API usa 'variaveis', componente espera 'variables'
+          nome: item.nome,
+          tipo: item.tipo || "default",
+          cor: getColorClass(item.cor),
+          variaveis: item.variaveis || [],
         }));
 
         setCustomComponents(processedData);
@@ -451,10 +449,10 @@ function FlowComponent() {
         const fallbackData: DraggableComponentType[] = [
           {
             id: "visita",
-            label: "Visita",
-            type: "default",
-            color: "bg-purple-500",
-            variables: [
+            nome: "Visita",
+            tipo: "default",
+            cor: "bg-purple-500",
+            variaveis: [
               { name: "destino", type: "string", value: null, required: true },
               {
                 name: "horario",
@@ -466,10 +464,10 @@ function FlowComponent() {
           },
           {
             id: "reuniao",
-            label: "Reunião",
-            type: "default",
-            color: "bg-orange-500",
-            variables: [
+            nome: "Reunião",
+            tipo: "default",
+            cor: "bg-orange-500",
+            variaveis: [
               { name: "local", type: "string", value: null, required: true },
               { name: "duracao", type: "number", value: null, required: true },
             ],
@@ -570,9 +568,9 @@ function FlowComponent() {
           type: "default",
           position,
           data: {
-            label: componentData.label,
+            nome: componentData.nome,
             componentId: componentData.id,
-            configuredVariables: [...(componentData.variables || [])],
+            configuredVariables: [...(componentData.variaveis || [])],
           },
         };
 
