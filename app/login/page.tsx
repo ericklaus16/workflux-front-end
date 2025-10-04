@@ -6,6 +6,7 @@ import { Zap, Eye, EyeOff, ArrowLeft, Loader2 } from "lucide-react";
 import { postLogin } from "@/lib/actions/auth/post-login";
 import { LoginFormState } from "@/lib/types/definition";
 import { useRouter } from "next/navigation";
+import { useUser } from "../context/User";
 
 const initialState: LoginFormState = {
   errors: {},
@@ -16,6 +17,7 @@ const initialState: LoginFormState = {
 
 function LoginPage() {
   const router = useRouter();
+  const { login, authState, isLoading: userLoading } = useUser();
   const [state, formAction, isPending] = useActionState(
     postLogin,
     initialState
@@ -24,6 +26,12 @@ function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   // Redireciona após sucesso baseado na role do usuário
+  useEffect(() => {
+    if (authState === "authenticated") {
+      router.push("/admin");
+    }
+  }, [authState, router]);
+
   useEffect(() => {
     if (state.success && state.usuario) {
       // Opcional: Salvar dados do usuário no localStorage
@@ -82,10 +90,11 @@ function LoginPage() {
         {/* Mensagens de Feedback */}
         {state.message && (
           <div
-            className={`p-4 rounded-lg ${state.success
-              ? "bg-green-50 text-green-800 border border-green-200"
-              : "bg-red-50 text-red-800 border border-red-200"
-              }`}
+            className={`p-4 rounded-lg ${
+              state.success
+                ? "bg-green-50 text-green-800 border border-green-200"
+                : "bg-red-50 text-red-800 border border-red-200"
+            }`}
           >
             <p className="text-sm font-medium">{state.message}</p>
             {state.success && state.usuario && (
