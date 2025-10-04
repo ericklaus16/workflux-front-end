@@ -1,30 +1,39 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useActionState, useState, useEffect } from "react";
 import Link from "next/link";
-import { Zap, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { Zap, Eye, EyeOff, ArrowLeft, Loader2 } from "lucide-react";
+import { postLogin } from "@/lib/actions/auth/post-login";
+import { LoginFormState } from "@/lib/types/definition";
+import { useRouter } from "next/navigation";
+
+const initialState: LoginFormState = {
+  errors: {},
+  message: "",
+  success: false,
+  role: undefined, 
+};
 
 function LoginPage() {
+  const router = useRouter();
+  const [state, formAction, isPending] = useActionState(
+    postLogin,
+    initialState
+  );
+
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    rememberMe: false,
-  });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Lógica de login aqui
-    console.log("Login data:", formData);
-  };
+  useEffect(() => {
+    if (state.success && state.role) {
+      setTimeout(() => {
+        if (state.role === "gestor") {
+          router.push("/admin");
+        } else if (state.role === "funcionario") {
+          router.push("/func");
+        }
+      }, 1500);
+    }
+  }, [state.success, state.role, router]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center px-4 sm:px-6 lg:px-8">
@@ -57,7 +66,7 @@ function LoginPage() {
           <p className="mt-2 text-sm text-gray-600">
             Ou{" "}
             <Link
-              href="/register"
+              href="/cadastro"
               className="font-medium text-blue-600 hover:text-blue-500"
             >
               crie uma nova conta
@@ -65,8 +74,29 @@ function LoginPage() {
           </p>
         </div>
 
+        {/* Mensagens de Feedback */}
+        {state.message && (
+          <div
+            className={`p-4 rounded-lg ${state.success
+                ? "bg-green-50 text-green-800 border border-green-200"
+                : "bg-red-50 text-red-800 border border-red-200"
+              }`}
+          >
+            <p className="text-sm font-medium">{state.message}</p>
+            {state.success && state.role && (
+              <p className="text-xs mt-1">
+                Redirecionando para{" "}
+                {state.role === "gestor"
+                  ? "painel administrativo"
+                  : "painel do funcionário"}
+                ...
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Form */}
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form action={formAction} className="mt-8 space-y-6">
           <div className="space-y-4">
             {/* Email */}
             <div>
@@ -82,11 +112,15 @@ function LoginPage() {
                 type="email"
                 autoComplete="email"
                 required
-                value={formData.email}
-                onChange={handleInputChange}
-                className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"
+                disabled={isPending}
+                className="appearance-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out disabled:bg-gray-100 disabled:cursor-not-allowed"
                 placeholder="seu@email.com"
               />
+              {state.errors?.email && (
+                <p className="text-red-500 text-xs mt-1">
+                  {state.errors.email}
+                </p>
+              )}
             </div>
 
             {/* Password */}
@@ -104,15 +138,16 @@ function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   required
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className="appearance-none relative block w-full px-3 py-3 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"
+                  minLength={8}
+                  disabled={isPending}
+                  className="appearance-none relative block w-full px-3 py-3 pr-10 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out disabled:bg-gray-100 disabled:cursor-not-allowed"
                   placeholder="Sua senha"
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center disabled:cursor-not-allowed"
                   onClick={() => setShowPassword(!showPassword)}
+                  disabled={isPending}
                 >
                   {showPassword ? (
                     <EyeOff className="h-4 w-4 text-gray-400" />
@@ -121,6 +156,11 @@ function LoginPage() {
                   )}
                 </button>
               </div>
+              {state.errors?.senha && (
+                <p className="text-red-500 text-xs mt-1">
+                  {state.errors.senha}
+                </p>
+              )}
             </div>
           </div>
 
@@ -131,9 +171,8 @@ function LoginPage() {
                 id="rememberMe"
                 name="rememberMe"
                 type="checkbox"
-                checked={formData.rememberMe}
-                onChange={handleInputChange}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                disabled={isPending}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:cursor-not-allowed"
               />
               <label
                 htmlFor="rememberMe"
@@ -157,9 +196,17 @@ function LoginPage() {
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out"
+              disabled={isPending}
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Entrar
+              {isPending ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Entrando...
+                </>
+              ) : (
+                "Entrar"
+              )}
             </button>
           </div>
         </form>
@@ -178,7 +225,8 @@ function LoginPage() {
             <div className="mt-6 grid grid-cols-2 gap-3">
               <button
                 type="button"
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition duration-150 ease-in-out"
+                disabled={isPending}
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path
@@ -203,7 +251,8 @@ function LoginPage() {
 
               <button
                 type="button"
-                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition duration-150 ease-in-out"
+                disabled={isPending}
+                className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg
                   className="w-5 h-5"

@@ -8,16 +8,14 @@ export async function postRegister(
   formData: FormData
 ): Promise<RegisterFormState> {
   try {
-    // Extrai os dados do FormData
     const firstName = formData.get("firstName") as string;
     const lastName = formData.get("lastName") as string;
     const email = formData.get("email") as string;
     const telefone = formData.get("telefone") as string;
-    const setor = formData.get("setor") as string;
+    const setor = "gestor";
     const password = formData.get("password") as string;
     const confirmPassword = formData.get("confirmPassword") as string;
 
-    // Validações
     const errors: Record<string, string> = {};
 
     if (!firstName || !lastName) {
@@ -36,7 +34,6 @@ export async function postRegister(
       errors.confirmPassword = "As senhas não coincidem";
     }
 
-    // Se houver erros, retorna sem fazer a requisição
     if (Object.keys(errors).length > 0) {
       return {
         errors,
@@ -45,19 +42,18 @@ export async function postRegister(
       };
     }
 
-    // Prepara o payload
     const nomeCompleto = `${firstName.trim()} ${lastName.trim()}`;
 
     const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/auth/usuarios`;
 
-    console.log("API URL:", apiUrl);
+    // console.log("API URL:", apiUrl);
 
     const payload = {
       nome: nomeCompleto,
       email: email.trim(),
       telefone: telefone?.trim() || "",
       senha: password,
-      setorId: setor?.trim() || "1", 
+      setorId: setor?.trim() || "1",
       role: "gestor",
       estaAtivo: true,
     };
@@ -66,14 +62,10 @@ export async function postRegister(
 
     const response = await axios.post(apiUrl, payload);
 
-    if (!response.data.success) {
-      return {
-        errors: {},
-        message: response.data.message || "Erro ao registrar usuário.",
-        success: false,
-      };
-    }
+    console.log("Resposta do backend:", response.data);
 
+    // Backend retorna status 201 e o objeto do usuário diretamente
+    // Se chegou aqui com status 2xx, consideramos sucesso
     return {
       errors: {},
       message: "Usuário registrado com sucesso! Redirecionando...",
