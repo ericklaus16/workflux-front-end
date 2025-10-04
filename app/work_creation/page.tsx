@@ -15,6 +15,8 @@ import {
   ReactFlowProvider,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import { Plus } from "lucide-react";
+import NodeCreationModal from "./components/NodeCreation";
 
 interface NodeData {
   label: string;
@@ -93,27 +95,6 @@ type CustomNode = Node<NodeData>;
 
 const DraggableComponents = [
   {
-    id: "input",
-    label: "Input",
-    type: "input",
-    color: "bg-blue-500",
-    variables: [], // Sem variáveis específicas
-  },
-  {
-    id: "process",
-    label: "Process",
-    type: "default",
-    color: "bg-green-500",
-    variables: [], // Sem variáveis específicas
-  },
-  {
-    id: "output",
-    label: "Output",
-    type: "output",
-    color: "bg-red-500",
-    variables: [], // Sem variáveis específicas
-  },
-  {
     id: "visita",
     label: "Visita",
     type: "default",
@@ -135,12 +116,6 @@ const DraggableComponents = [
     color: "bg-orange-500",
     variables: [
       { name: "local", type: "string" as const, value: null, required: true },
-      {
-        name: "participantes",
-        type: "array" as const,
-        value: null,
-        required: false,
-      },
       { name: "duracao", type: "number" as const, value: null, required: true },
     ],
   },
@@ -467,7 +442,9 @@ function FlowComponent() {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<CustomNode | null>(null);
+  const [customComponents, setCustomComponents] = useState(DraggableComponents);
   const { screenToFlowPosition } = useReactFlow();
 
   const onConnect = useCallback(
@@ -546,15 +523,30 @@ function FlowComponent() {
   return (
     <div className="flex h-screen bg-gray-100">
       <div className="w-64 bg-white shadow-lg p-6 border-r">
-        <h2 className="text-xl font-bold mb-6 text-gray-800">Componentes</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold text-gray-800">Componentes</h2>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-blue-600 cursor-pointer text-white p-2 rounded-lg hover:bg-blue-700 transition-colors"
+            title="Criar novo nó"
+          >
+            <Plus size={16} />
+          </button>
+        </div>
+
         <div className="space-y-4">
-          {DraggableComponents.map((component) => (
+          {customComponents.map((component) => (
             <DraggableComponent key={component.id} component={component} />
           ))}
         </div>
+
         <div className="mt-6 text-sm text-gray-600">
           <p>
             Arraste os componentes para o workflow ao lado para criar seu fluxo.
+          </p>
+          <p className="mt-2 text-xs">
+            Clique no <Plus size={12} className="inline" /> para criar novos
+            tipos de nó.
           </p>
         </div>
       </div>
@@ -582,6 +574,12 @@ function FlowComponent() {
       <PropertiesPanel
         selectedNode={selectedNode}
         onUpdateNode={onUpdateNode}
+      />
+
+      <NodeCreationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={() => {}}
       />
     </div>
   );
