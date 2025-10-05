@@ -15,4 +15,14 @@ export interface Activity {
       completed: boolean;
     }>;
   };
+  atribuidoPor?: {
+    id: string;
+    nome: string;
+    email: string;
+  };
+  atribuidoPara?: {
+    id: string;
+    nome: string;
+    email: string;
+  };
 }

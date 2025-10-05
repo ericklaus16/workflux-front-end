@@ -1,5 +1,7 @@
 import { useUser } from "@/app/context/User";
 import {
+  Bell,
+  BellRing,
   LogOut,
   Settings,
   User,
@@ -11,8 +13,10 @@ import {
 import Link from "next/link";
 
 type Props = {
-  activeTab: "assignments" | "create";
-  setActiveTab: React.Dispatch<React.SetStateAction<"assignments" | "create">>;
+  activeTab: "assignments" | "create" | "notifications";
+  setActiveTab: React.Dispatch<
+    React.SetStateAction<"assignments" | "create" | "notifications">
+  >;
 };
 
 function AdminHeader({ activeTab, setActiveTab }: Props) {
@@ -41,10 +45,11 @@ function AdminHeader({ activeTab, setActiveTab }: Props) {
       <nav className="p-4 space-y-2">
         <button
           onClick={() => setActiveTab("assignments")}
-          className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors cursor-pointer ${activeTab === "assignments"
+          className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors cursor-pointer ${
+            activeTab === "assignments"
               ? "bg-blue-50 text-blue-700 border-r-2 border-blue-700"
               : "text-gray-600 hover:bg-gray-50"
-            }`}
+          }`}
         >
           <UserCheck className="w-5 h-5 mr-3" />
           Atribuições
@@ -53,10 +58,11 @@ function AdminHeader({ activeTab, setActiveTab }: Props) {
         <Link href="/work_creation">
           <button
             onClick={() => setActiveTab("create")}
-            className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors cursor-pointer ${activeTab === "create"
+            className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors cursor-pointer ${
+              activeTab === "create"
                 ? "bg-blue-50 text-blue-700 border-r-2 border-blue-700"
                 : "text-gray-600 hover:bg-gray-50"
-              }`}
+            }`}
           >
             <Workflow className="w-5 h-5 mr-3" />
             Criar Fluxos
@@ -68,10 +74,25 @@ function AdminHeader({ activeTab, setActiveTab }: Props) {
           Funcionários
         </button>
 
-        <Link href="/perfil" className="w-full flex items-center px-3 py-2 rounded-lg text-left text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">
+        <Link
+          href="/perfil"
+          className="w-full flex items-center px-3 py-2 rounded-lg text-left text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
+        >
           <User className="w-5 h-5 mr-3" />
           Perfil
         </Link>
+
+        <button
+          onClick={() => setActiveTab("notifications")}
+          className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors cursor-pointer ${
+            activeTab === "notifications"
+              ? "bg-blue-50 text-blue-700 border-r-2 border-blue-700"
+              : "text-gray-600 hover:bg-gray-50"
+          }`}
+        >
+          <BellRing className="w-5 h-5 mr-3" />
+          Notificações (3)
+        </button>
 
         <button className="w-full flex items-center px-3 py-2 rounded-lg text-left text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer">
           <Settings className="w-5 h-5 mr-3" />
