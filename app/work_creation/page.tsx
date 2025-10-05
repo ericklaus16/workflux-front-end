@@ -30,7 +30,7 @@ const CustomBlueprintNode = ({ data }: { data: any }) => {
   return (
     <div className="bg-gray-800 border-2 border-gray-600 rounded-lg min-w-[200px] shadow-lg">
       <div className="bg-red-600 text-white px-4 py-2 rounded-t-lg text-sm font-medium">
-        {data.label}
+        {data.nome}
       </div>
 
       <div className="p-3">
@@ -114,12 +114,28 @@ const DraggableComponent = ({
   // Garante que variables sempre seja um array
   const variables = component.variaveis || [];
 
+  const getColorStyle = (colorClass: string): string => {
+    const colorMap: { [key: string]: string } = {
+      "bg-blue-500": "#3b82f6",
+      "bg-red-500": "#ef4444",
+      "bg-green-500": "#22c55e",
+      "bg-purple-500": "#a855f7",
+      "bg-orange-500": "#f97316",
+      "bg-teal-500": "#14b8a6",
+      "bg-indigo-500": "#6366f1",
+      "bg-pink-500": "#ec4899",
+      "bg-yellow-500": "#eab308",
+      "bg-gray-500": "#6b7280",
+    };
+
+    return colorMap[colorClass] || "#3b82f6";
+  };
+
   return (
     <div
-      className={`${
-        component.cor || "bg-blue-500"
-      } text-white p-4 rounded-lg cursor-grab active:cursor-grabbing shadow-lg hover:shadow-xl transition-all duration-200 border border-white/20`}
+      className={`text-white p-4 rounded-lg cursor-grab active:cursor-grabbing shadow-lg hover:shadow-xl transition-all duration-200 border border-white/20`}
       onDragStart={(event) => onDragStart(event, component)}
+      style={{ backgroundColor: getColorStyle(component.cor) }}
       draggable
     >
       <div className="text-center font-semibold text-sm mb-2">
@@ -177,231 +193,6 @@ const initialEdges: Edge[] = [];
 let id = 2;
 const getId = () => `${id++}`;
 
-const PropertiesPanel = ({
-  selectedNode,
-  onUpdateNode,
-}: {
-  selectedNode: CustomNode | null;
-  onUpdateNode: (nodeId: string, newData: NodeData) => void;
-}) => {
-  const [localValues, setLocalValues] = useState<Record<string, any>>({});
-
-  const handleVariableChange = (variableName: string, value: any) => {
-    if (!selectedNode) return;
-
-    const newLocalValues = { ...localValues, [variableName]: value };
-    setLocalValues(newLocalValues);
-
-    const currentVariabes = selectedNode.data.configuredVariables || [];
-
-    // Atualiza o nó com os novos valores
-    const updatedVariables = currentVariabes.map((v: any) =>
-      v.name === variableName ? { ...v, value } : v
-    );
-
-    onUpdateNode(selectedNode.id, {
-      ...selectedNode.data,
-      configuredVariables: updatedVariables,
-    });
-  };
-
-  const renderVariableInput = (variable: any) => {
-    const currentValue = localValues[variable.name] ?? variable.value;
-
-    switch (variable.type) {
-      case "string":
-        return (
-          <input
-            type="text"
-            value={currentValue || ""}
-            onChange={(e) =>
-              handleVariableChange(variable.name, e.target.value)
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder={`Digite ${variable.name}`}
-          />
-        );
-
-      case "number":
-        return (
-          <input
-            type="number"
-            value={currentValue || ""}
-            onChange={(e) =>
-              handleVariableChange(
-                variable.name,
-                parseFloat(e.target.value) || 0
-              )
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="0"
-          />
-        );
-
-      case "date":
-        return (
-          <input
-            type="date"
-            value={currentValue || ""}
-            onChange={(e) =>
-              handleVariableChange(variable.name, e.target.value)
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        );
-
-      case "datetime":
-        return (
-          <input
-            type="datetime-local"
-            value={currentValue || ""}
-            onChange={(e) =>
-              handleVariableChange(variable.name, e.target.value)
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        );
-
-      case "select":
-        return (
-          <select
-            value={currentValue || ""}
-            onChange={(e) =>
-              handleVariableChange(variable.name, e.target.value)
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Selecione...</option>
-            {variable.options?.map((option: string) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        );
-
-      case "array":
-        return (
-          <textarea
-            value={currentValue ? JSON.stringify(currentValue, null, 2) : ""}
-            onChange={(e) => {
-              try {
-                const parsed = JSON.parse(e.target.value);
-                handleVariableChange(variable.name, parsed);
-              } catch {
-                // Ignore invalid JSON while typing
-              }
-            }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            rows={3}
-            placeholder="[]"
-          />
-        );
-
-      default:
-        return (
-          <input
-            type="text"
-            value={currentValue || ""}
-            onChange={(e) =>
-              handleVariableChange(variable.name, e.target.value)
-            }
-            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        );
-    }
-  };
-
-  if (!selectedNode) {
-    return (
-      <div className="w-80 bg-gray-800 text-white p-6 border-l border-gray-700">
-        <div className="text-center text-gray-400 mt-10">
-          <div className="text-lg font-medium mb-2">Properties</div>
-          <div className="text-sm">
-            Selecione um nó para ver suas propriedades
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="w-80 bg-gray-800 text-white p-6 border-l border-gray-700 overflow-y-auto">
-      <div className="mb-6">
-        <div className="text-lg font-bold text-blue-400 mb-1">
-          {selectedNode.data.label}
-        </div>
-        <div className="text-xs text-gray-400">
-          ID: {selectedNode.id} | Type: {selectedNode.data.componentId}
-        </div>
-      </div>
-
-      <div className="mb-6">
-        <div className="text-sm font-semibold text-gray-300 mb-3 border-b border-gray-600 pb-1">
-          ASSIGNMENT
-        </div>
-        <div className="space-y-3">
-          <div>
-            <label className="block text-xs text-gray-400 mb-1">
-              Assigned To
-            </label>
-            <select className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-              <option value="">Selecionar funcionário...</option>
-              <option value="joao">João Silva</option>
-              <option value="maria">Maria Santos</option>
-              <option value="pedro">Pedro Costa</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {selectedNode.data.configuredVariables &&
-        selectedNode.data.configuredVariables.length > 0 && (
-          <div className="mb-6">
-            <div className="text-sm font-semibold text-gray-300 mb-3 border-b border-gray-600 pb-1">
-              VARIABLES
-            </div>
-            <div className="space-y-4">
-              {selectedNode.data.configuredVariables.map(
-                (variable: any, index: number) => (
-                  <div key={index} className="bg-gray-700 p-3 rounded-lg">
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-xs font-medium text-gray-300">
-                        {variable.name}
-                        {variable.required && (
-                          <span className="text-red-400 ml-1">*</span>
-                        )}
-                      </label>
-                      <span className="text-xs text-gray-500 uppercase">
-                        {variable.type}
-                      </span>
-                    </div>
-                    {renderVariableInput(variable)}
-                  </div>
-                )
-              )}
-            </div>
-          </div>
-        )}
-
-      <div className="mt-8">
-        <div className="text-sm font-semibold text-gray-300 mb-3 border-b border-gray-600 pb-1">
-          DEBUG INFO
-        </div>
-        <div className="text-xs text-gray-500 bg-gray-900 p-3 rounded-lg">
-          <div>
-            Position: ({Math.round(selectedNode.position.x)},{" "}
-            {Math.round(selectedNode.position.y)})
-          </div>
-          <div>
-            Variables: {selectedNode.data.configuredVariables?.length || 0}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 function FlowComponent() {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -427,16 +218,14 @@ function FlowComponent() {
           throw new Error("NEXT_PUBLIC_API_URL não está configurada");
         }
 
-        console.log("Fazendo requisição para:", `${apiUrl}/nodes`);
-
         const response = await axios.get(`${apiUrl}/nodes`);
+        console.log(response.data);
 
-        // Mapear os dados da API para o formato esperado pelo componente
         const processedData = response.data.map((item: any) => ({
           id: item.id,
           nome: item.nome,
           tipo: item.tipo || "default",
-          cor: getColorClass(item.cor),
+          cor: item.cor,
           variaveis: item.variaveis || [],
         }));
 
@@ -482,23 +271,6 @@ function FlowComponent() {
 
     fetchNodes();
   }, []);
-
-  const getColorClass = (cor: string): string => {
-    const colorMap: { [key: string]: string } = {
-      blue: "bg-blue-500",
-      red: "bg-red-500",
-      green: "bg-green-500",
-      purple: "bg-purple-500",
-      orange: "bg-orange-500",
-      teal: "bg-teal-500",
-      indigo: "bg-indigo-500",
-      pink: "bg-pink-500",
-      yellow: "bg-yellow-500",
-      gray: "bg-gray-500",
-    };
-
-    return colorMap[cor] || "bg-blue-500";
-  };
 
   const handleSaveCustomNode = (nodeData: any) => {
     const newComponent: DraggableComponentType = {
@@ -644,11 +416,6 @@ function FlowComponent() {
           <Background color="#333" gap={20} />
         </ReactFlow>
       </div>
-
-      <PropertiesPanel
-        selectedNode={selectedNode}
-        onUpdateNode={onUpdateNode}
-      />
 
       <NodeCreationModal
         isOpen={isModalOpen}
