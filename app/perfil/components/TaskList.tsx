@@ -1,21 +1,21 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Task } from '../types';
-import TaskCard from './TaskCard';
-import { ChevronDown, ChevronUp, ListTodo } from 'lucide-react';
+import React, { useState } from "react";
+import TaskCard from "./TaskCard";
+import { ChevronDown, ChevronUp, ListTodo } from "lucide-react";
+import { Activity } from "@/app/interfaces/Activity";
 
 type Props = {
   title: string;
-  tasks: Task[];
+  tasks: Activity[];
   icon?: React.ReactNode;
 };
 
 export default function TaskList({ title, tasks, icon }: Props) {
   const [isExpanded, setIsExpanded] = useState(true);
 
-  const completedTasks = tasks.filter(t => t.completed);
-  const pendingTasks = tasks.filter(t => !t.completed);
+  const completedTasks = tasks.filter((t) => t.status === "concluida");
+  const pendingTasks = tasks.filter((t) => t.status !== "concluida");
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
@@ -28,7 +28,9 @@ export default function TaskList({ title, tasks, icon }: Props) {
           <div className="text-left">
             <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
             <p className="text-xs text-gray-500">
-              {pendingTasks.length} pendente{pendingTasks.length !== 1 ? 's' : ''} · {completedTasks.length} concluída{completedTasks.length !== 1 ? 's' : ''}
+              {pendingTasks.length} pendente
+              {pendingTasks.length !== 1 ? "s" : ""} · {completedTasks.length}{" "}
+              concluída{completedTasks.length !== 1 ? "s" : ""}
             </p>
           </div>
         </div>
@@ -46,7 +48,9 @@ export default function TaskList({ title, tasks, icon }: Props) {
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
                 <ListTodo className="w-8 h-8 text-gray-400" />
               </div>
-              <p className="text-sm text-gray-500">Nenhuma tarefa encontrada.</p>
+              <p className="text-sm text-gray-500">
+                Nenhuma tarefa encontrada.
+              </p>
             </div>
           ) : (
             <div className="space-y-3">

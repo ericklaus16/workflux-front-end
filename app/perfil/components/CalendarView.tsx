@@ -1,15 +1,25 @@
 "use client";
 
 import React, { useState } from "react";
-import { ChevronLeft, ChevronRight, Calendar, X, CheckCircle2, Circle } from "lucide-react";
-import { Task } from "../types";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  X,
+  CheckCircle2,
+  Circle,
+} from "lucide-react";
+import { Activity } from "@/app/interfaces/Activity";
 
 interface CalendarViewProps {
-  tasks: Task[];
+  tasks: Activity[];
   onDateClick?: (date: Date) => void;
 }
 
-export default function CalendarView({ tasks, onDateClick }: CalendarViewProps) {
+export default function CalendarView({
+  tasks,
+  onDateClick,
+}: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -58,7 +68,7 @@ export default function CalendarView({ tasks, onDateClick }: CalendarViewProps) 
 
   const getTasksForDate = (date: Date) => {
     return tasks.filter((task) => {
-      const taskDate = new Date(task.date);
+      const taskDate = new Date(task.createdAt);
       return (
         taskDate.getDate() === date.getDate() &&
         taskDate.getMonth() === date.getMonth() &&
@@ -105,10 +115,10 @@ export default function CalendarView({ tasks, onDateClick }: CalendarViewProps) 
 
   const getOwnerInitials = (name: string) => {
     return name
-      .split(' ')
-      .map(n => n[0])
+      .split(" ")
+      .map((n) => n[0])
       .slice(0, 2)
-      .join('')
+      .join("")
       .toUpperCase();
   };
 
@@ -119,9 +129,7 @@ export default function CalendarView({ tasks, onDateClick }: CalendarViewProps) 
 
     // Empty cells for days before month starts
     for (let i = 0; i < firstDay; i++) {
-      days.push(
-        <div key={`empty-${i}`} className="aspect-square p-2"></div>
-      );
+      days.push(<div key={`empty-${i}`} className="aspect-square p-2"></div>);
     }
 
     // Calendar days
@@ -140,17 +148,23 @@ export default function CalendarView({ tasks, onDateClick }: CalendarViewProps) 
         <button
           key={day}
           onClick={() => handleDateClick(day)}
-          className={`aspect-square p-1.5 rounded-lg transition-all duration-200 ${today
-            ? "bg-blue-100 border-2 border-blue-500 font-bold hover:bg-blue-200"
-            : selected
+          className={`aspect-square p-1.5 rounded-lg transition-all duration-200 ${
+            today
+              ? "bg-blue-100 border-2 border-blue-500 font-bold hover:bg-blue-200"
+              : selected
               ? "bg-blue-500 text-white hover:bg-blue-600"
               : "bg-white hover:bg-blue-50 hover:shadow-md hover:scale-105"
-            } ${hasTask ? "ring-1 ring-purple-300" : ""}`}
+          } ${hasTask ? "ring-1 ring-purple-300" : ""}`}
         >
           <div className="flex flex-col items-center justify-center h-full">
             <span
-              className={`text-xs font-medium ${today ? "text-blue-700" : selected ? "text-white" : "text-gray-700"
-                }`}
+              className={`text-xs font-medium ${
+                today
+                  ? "text-blue-700"
+                  : selected
+                  ? "text-white"
+                  : "text-gray-700"
+              }`}
             >
               {day}
             </span>
@@ -159,8 +173,9 @@ export default function CalendarView({ tasks, onDateClick }: CalendarViewProps) 
                 {dayTasks.slice(0, 3).map((_, idx) => (
                   <div
                     key={idx}
-                    className={`w-1 h-1 rounded-full ${selected ? "bg-white" : "bg-purple-500"
-                      }`}
+                    className={`w-1 h-1 rounded-full ${
+                      selected ? "bg-white" : "bg-purple-500"
+                    }`}
                   ></div>
                 ))}
               </div>
@@ -202,7 +217,6 @@ export default function CalendarView({ tasks, onDateClick }: CalendarViewProps) 
             >
               <ChevronRight className="w-5 h-5 text-white" />
             </button>
-
           </div>
         </div>
       </div>
@@ -265,7 +279,8 @@ export default function CalendarView({ tasks, onDateClick }: CalendarViewProps) 
                 </button>
               </div>
               <p className="text-white/90 text-sm">
-                {selectedDateTasks.length} {selectedDateTasks.length === 1 ? 'Atividade' : 'Atividades'}
+                {selectedDateTasks.length}{" "}
+                {selectedDateTasks.length === 1 ? "Atividade" : "Atividades"}
               </p>
             </div>
 
@@ -279,7 +294,7 @@ export default function CalendarView({ tasks, onDateClick }: CalendarViewProps) 
                   >
                     <div className="flex items-start gap-4">
                       <div className="mt-1">
-                        {task.completed ? (
+                        {task.status === "concluida" ? (
                           <CheckCircle2 className="w-6 h-6 text-green-500" />
                         ) : (
                           <Circle className="w-6 h-6 text-gray-400" />
@@ -288,10 +303,11 @@ export default function CalendarView({ tasks, onDateClick }: CalendarViewProps) 
 
                       <div className="flex-1">
                         <h4
-                          className={`text-lg font-semibold mb-2 ${task.completed
-                            ? "line-through text-gray-500"
-                            : "text-gray-900"
-                            }`}
+                          className={`text-lg font-semibold mb-2 ${
+                            task.status === "concluida"
+                              ? "line-through text-gray-500"
+                              : "text-gray-900"
+                          }`}
                         >
                           {task.title}
                         </h4>
@@ -305,21 +321,21 @@ export default function CalendarView({ tasks, onDateClick }: CalendarViewProps) 
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-2">
                             <div className="w-7 h-7 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
-                              {getOwnerInitials(task.owner.name)}
+                              {getOwnerInitials(task.atribuidoPara!.nome)}
                             </div>
                             <span className="text-sm text-gray-600">
-                              {task.owner.name}
+                              {task.atribuidoPara!.nome}
                             </span>
                           </div>
 
-                          {task.completed && (
+                          {task.status === "concluida" && (
                             <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
                               Concluída
                             </span>
                           )}
                         </div>
 
-                        {!task.completed && (
+                        {task.status !== "concluida" && (
                           <div className="mt-3 flex gap-2">
                             <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors">
                               Marcar como concluída

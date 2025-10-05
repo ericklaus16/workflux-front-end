@@ -137,6 +137,7 @@ export function UserProvider({ children }: UserProviderProps) {
   const login = (userData: User) => {
     try {
       // Salvar dados no localStorage
+      localStorage.setItem("usuario", JSON.stringify(userData));
       localStorage.setItem("workflux_user", JSON.stringify(userData));
       localStorage.setItem("workflux_auth_token", "your-auth-token"); // Se você usar tokens
       localStorage.setItem("workflux_last_login", new Date().toISOString());

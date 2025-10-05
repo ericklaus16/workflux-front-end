@@ -6,6 +6,7 @@ export interface Activity {
   priority: "baixa" | "media" | "alta";
   dueDate: string;
   assignedBy: string;
+  createdAt: string;
   status: "pendente" | "em_progresso" | "concluida";
   variables: Record<string, any>;
   workflow?: {
