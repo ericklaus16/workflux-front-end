@@ -15,77 +15,14 @@ import {
   ReactFlowProvider,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { Plus } from "lucide-react";
+import { Plus, Code, Eye, EyeOff } from "lucide-react";
 import NodeCreationModal from "./components/NodeCreation";
-import { DraggableComponentType, VariableType } from "../interfaces/Node";
+import { DraggableComponentType, NodeData } from "../interfaces/Node";
 import axios from "axios";
-
-interface NodeData {
-  nome: string;
-  variaveisConfiguradas?: VariableType[];
-  [key: string]: any;
-}
-
-const CustomBlueprintNode = ({ data }: { data: any }) => {
-  return (
-    <div className="bg-gray-800 border-2 border-gray-600 rounded-lg min-w-[200px] shadow-lg">
-      <div className="bg-red-600 text-white px-4 py-2 rounded-t-lg text-sm font-medium">
-        {data.nome}
-      </div>
-
-      <div className="p-3">
-        {data.configuredVariables && data.configuredVariables.length > 0 && (
-          <div className="space-y-2">
-            {data.configuredVariables.map((variable: any, index: number) => (
-              <div
-                key={index}
-                className="flex items-center justify-between relative"
-              >
-                <div className="absolute -left-6 top-1/2 transform -translate-y-1/2">
-                  <div className="w-4 h-4 rounded-full bg-blue-500 border-2 border-white cursor-pointer hover:bg-blue-400">
-                    <div className="handle-left" />
-                  </div>
-                </div>
-
-                <span className="text-white text-xs font-medium pl-2">
-                  {variable.name}
-                  {variable.required && (
-                    <span className="text-red-400 ml-1">*</span>
-                  )}
-                </span>
-
-                <span className="text-gray-400 text-xs uppercase">
-                  {variable.type}
-                </span>
-
-                <div className="absolute -right-6 top-1/2 transform -translate-y-1/2">
-                  <div className="w-4 h-4 rounded-full bg-green-500 border-2 border-white cursor-pointer hover:bg-green-400">
-                    <div className="handle-right" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {(!data.configuredVariables ||
-          data.configuredVariables.length === 0) && (
-          <div className="flex items-center justify-between relative py-2">
-            <div className="absolute -left-6 top-1/2 transform -translate-y-1/2">
-              <div className="w-4 h-4 rounded-full bg-blue-500 border-2 border-white cursor-pointer hover:bg-blue-400" />
-            </div>
-
-            <span className="text-white text-xs">Execute</span>
-
-            <div className="absolute -right-6 top-1/2 transform -translate-y-1/2">
-              <div className="w-4 h-4 rounded-full bg-green-500 border-2 border-white cursor-pointer hover:bg-green-400" />
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
+import DraggableComponent from "./components/DraggableComponent";
+import CustomBlueprintNode from "./components/CustomBlueprintNode";
+import { CustomNode } from "../perfil/types";
+import ComplexNodeCreation from "./components/ComplexNodeCreation";
 
 const nodeTypes = {
   default: CustomBlueprintNode,
@@ -93,97 +30,11 @@ const nodeTypes = {
   output: CustomBlueprintNode,
 };
 
-type CustomNode = Node<NodeData>;
-
-const DraggableComponent = ({
-  component,
-}: {
-  component: DraggableComponentType;
-}) => {
-  const onDragStart = (
-    event: React.DragEvent,
-    componentData: DraggableComponentType
-  ) => {
-    event.dataTransfer.setData(
-      "application/reactflow",
-      JSON.stringify(componentData)
-    );
-    event.dataTransfer.effectAllowed = "move";
-  };
-
-  // Garante que variables sempre seja um array
-  const variables = component.variaveis || [];
-
-  const getColorStyle = (colorClass: string): string => {
-    const colorMap: { [key: string]: string } = {
-      "bg-blue-500": "#3b82f6",
-      "bg-red-500": "#ef4444",
-      "bg-green-500": "#22c55e",
-      "bg-purple-500": "#a855f7",
-      "bg-orange-500": "#f97316",
-      "bg-teal-500": "#14b8a6",
-      "bg-indigo-500": "#6366f1",
-      "bg-pink-500": "#ec4899",
-      "bg-yellow-500": "#eab308",
-      "bg-gray-500": "#6b7280",
-    };
-
-    return colorMap[colorClass] || "#3b82f6";
-  };
-
-  return (
-    <div
-      className={`text-white p-4 rounded-lg cursor-grab active:cursor-grabbing shadow-lg hover:shadow-xl transition-all duration-200 border border-white/20`}
-      onDragStart={(event) => onDragStart(event, component)}
-      style={{ backgroundColor: getColorStyle(component.cor) }}
-      draggable
-    >
-      <div className="text-center font-semibold text-sm mb-2">
-        {component.nome}
-      </div>
-
-      <div className="text-xs opacity-90">
-        {variables.length > 0 ? (
-          <div>
-            <div className="font-medium mb-1">
-              Variáveis ({variables.length}):
-            </div>
-            <div className="space-y-1">
-              {variables.slice(0, 3).map((variable, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between bg-black/20 rounded px-2 py-1"
-                >
-                  <span className="truncate">{variable.name}</span>
-                  <span className="text-xs opacity-75 ml-1">
-                    {variable.type}
-                    {variable.required && "*"}
-                  </span>
-                </div>
-              ))}
-              {variables.length > 3 && (
-                <div className="text-center opacity-75">
-                  +{variables.length - 3} mais...
-                </div>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="text-center py-2">
-            <div className="font-medium">Componente Simples</div>
-            <div className="opacity-75">Sem variáveis configuradas</div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
 const initialNodes: CustomNode[] = [
   {
     id: "1",
     type: "input",
-    data: { nome: "Start" },
+    data: { nome: "Início" },
     position: { x: 250, y: 25 },
   },
 ];
@@ -198,12 +49,14 @@ function FlowComponent() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showComplexNodeModal, setShowComplexNodeModal] = useState(false);
   const [selectedNode, setSelectedNode] = useState<CustomNode | null>(null);
   const [customComponents, setCustomComponents] = useState<
     DraggableComponentType[]
   >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showConnectionsJson, setShowConnectionsJson] = useState(false);
   const { screenToFlowPosition } = useReactFlow();
 
   useEffect(() => {
@@ -219,7 +72,6 @@ function FlowComponent() {
         }
 
         const response = await axios.get(`${apiUrl}/nodes`);
-        console.log(response.data);
 
         const processedData = response.data.map((item: any) => ({
           id: item.id,
@@ -233,37 +85,6 @@ function FlowComponent() {
       } catch (err: any) {
         console.error("Erro ao buscar nós:", err);
         setError(err.message || "Erro ao carregar componentes");
-
-        // Dados de fallback caso a API falhe
-        const fallbackData: DraggableComponentType[] = [
-          {
-            id: "visita",
-            nome: "Visita",
-            tipo: "default",
-            cor: "bg-purple-500",
-            variaveis: [
-              { name: "destino", type: "string", value: null, required: true },
-              {
-                name: "horario",
-                type: "datetime",
-                value: null,
-                required: true,
-              },
-            ],
-          },
-          {
-            id: "reuniao",
-            nome: "Reunião",
-            tipo: "default",
-            cor: "bg-orange-500",
-            variaveis: [
-              { name: "local", type: "string", value: null, required: true },
-              { name: "duracao", type: "number", value: null, required: true },
-            ],
-          },
-        ];
-
-        setCustomComponents(fallbackData);
       } finally {
         setLoading(false);
       }
@@ -271,6 +92,40 @@ function FlowComponent() {
 
     fetchNodes();
   }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Delete" || event.key === "Backspace") {
+        if (selectedNode) {
+          event.preventDefault();
+
+          if (selectedNode.id === "1") {
+            alert("❌ O nó inicial não pode ser removido!");
+            return;
+          }
+
+          // Deletar o nó selecionado
+          setNodes((nds) => nds.filter((node) => node.id !== selectedNode.id));
+
+          setEdges((eds) =>
+            eds.filter(
+              (edge) =>
+                edge.source !== selectedNode.id &&
+                edge.target !== selectedNode.id
+            )
+          );
+
+          setSelectedNode(null);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedNode, setNodes, setEdges]);
 
   const handleSaveCustomNode = (nodeData: any) => {
     const newComponent: DraggableComponentType = {
@@ -282,7 +137,9 @@ function FlowComponent() {
   };
 
   const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
+    (params: Connection) => {
+      setEdges((eds) => addEdge(params, eds));
+    },
     [setEdges]
   );
 
@@ -293,21 +150,6 @@ function FlowComponent() {
   const onPaneClick = useCallback(() => {
     setSelectedNode(null);
   }, []);
-
-  const onUpdateNode = useCallback(
-    (nodeId: string, newData: NodeData) => {
-      setNodes((nds) =>
-        nds.map((node) =>
-          node.id === nodeId ? { ...node, data: newData } : node
-        )
-      );
-
-      if (selectedNode && selectedNode.id === nodeId) {
-        setSelectedNode({ ...selectedNode, data: newData });
-      }
-    },
-    [setNodes, selectedNode]
-  );
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -341,6 +183,7 @@ function FlowComponent() {
           position,
           data: {
             nome: componentData.nome,
+            cor: componentData.cor,
             componentId: componentData.id,
             configuredVariables: [...(componentData.variaveis || [])],
           },
@@ -354,9 +197,81 @@ function FlowComponent() {
     [screenToFlowPosition, setNodes]
   );
 
+  // Gerar JSON das conexões
+  const getConnectionsJson = useCallback(() => {
+    const connections = edges.map((edge) => {
+      const sourceNode = nodes.find((n) => n.id === edge.source);
+      const targetNode = nodes.find((n) => n.id === edge.target);
+
+      return {
+        id: edge.id,
+        from: {
+          nodeId: edge.source,
+          nodeName: sourceNode?.data?.nome || "Unknown",
+          handleId: edge.sourceHandle,
+        },
+        to: {
+          nodeId: edge.target,
+          nodeName: targetNode?.data?.nome || "Unknown",
+          handleId: edge.targetHandle,
+        },
+      };
+    });
+
+    return {
+      totalConnections: edges.length,
+      totalNodes: nodes.length,
+      connections,
+      workflow: {
+        nodes: nodes.map((node) => ({
+          id: node.id,
+          name: node.data.nome,
+          type: node.type,
+          position: node.position,
+          variables: node.data.configuredVariables || [],
+        })),
+        edges: edges.map((edge) => ({
+          id: edge.id,
+          source: edge.source,
+          sourceHandle: edge.sourceHandle,
+          target: edge.target,
+          targetHandle: edge.targetHandle,
+        })),
+      },
+    };
+  }, [edges, nodes]);
+
+  // Log automático quando houver mudanças
+  useEffect(() => {
+    if (edges.length > 0) {
+      console.log("📊 Conexões atualizadas:", getConnectionsJson());
+    }
+  }, [edges, getConnectionsJson]);
+
+  // Copiar JSON para clipboard
+  const copyJsonToClipboard = () => {
+    const json = JSON.stringify(getConnectionsJson(), null, 2);
+    navigator.clipboard.writeText(json);
+    alert("JSON copiado para a área de transferência!");
+  };
+
+  // Exportar workflow
+  const exportWorkflow = () => {
+    const json = JSON.stringify(getConnectionsJson(), null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `workflow-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="flex h-screen bg-gray-100">
-      <div className="w-64 bg-white shadow-lg p-6 border-r">
+      <div className="w-64 bg-white shadow-lg p-6 border-r overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-800">Componentes</h2>
           <button
@@ -366,9 +281,16 @@ function FlowComponent() {
           >
             <Plus size={16} />
           </button>
+          <button
+            onClick={() => setShowComplexNodeModal(true)}
+            className="bg-blue-600 cursor-pointer text-white p-2 rounded-lg hover:bg-blue-700 transition-colors"
+            title="Criar novo nó complexo"
+          >
+            <Plus size={16} />
+          </button>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 mb-6">
           {loading ? (
             <div className="text-center py-4">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
@@ -386,6 +308,58 @@ function FlowComponent() {
           ))}
         </div>
 
+        <div className="mt-6 pt-6 border-t border-gray-200">
+          <h3 className="text-sm font-semibold text-gray-800 mb-3">
+            Workflow Info
+          </h3>
+          <div className="space-y-2 text-xs text-gray-600">
+            <div className="flex justify-between">
+              <span>Nós:</span>
+              <span className="font-semibold">{nodes.length}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Conexões:</span>
+              <span className="font-semibold">{edges.length}</span>
+            </div>
+          </div>
+
+          <div className="mt-4 space-y-2">
+            <button
+              onClick={() => setShowConnectionsJson(!showConnectionsJson)}
+              className="w-full bg-gray-800 text-white px-3 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center justify-center text-sm"
+            >
+              {showConnectionsJson ? (
+                <>
+                  <EyeOff size={14} className="mr-2" />
+                  Ocultar JSON
+                </>
+              ) : (
+                <>
+                  <Eye size={14} className="mr-2" />
+                  Ver JSON
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={copyJsonToClipboard}
+              className="w-full bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center text-sm"
+              disabled={edges.length === 0}
+            >
+              <Code size={14} className="mr-2" />
+              Copiar JSON
+            </button>
+
+            <button
+              onClick={exportWorkflow}
+              className="w-full bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center text-sm"
+              disabled={edges.length === 0}
+            >
+              📥 Exportar Workflow
+            </button>
+          </div>
+        </div>
+
         <div className="mt-6 text-sm text-gray-600">
           <p>
             Arraste os componentes para o workflow ao lado para criar seu fluxo.
@@ -397,30 +371,58 @@ function FlowComponent() {
         </div>
       </div>
 
-      <div className="flex-1" ref={reactFlowWrapper}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onDrop={onDrop}
-          onDragOver={onDragOver}
-          onNodeClick={onNodeClick}
-          onPaneClick={onPaneClick}
-          fitView
-          className="bg-gray-900"
-        >
-          <Controls />
-          <Background color="#333" gap={20} />
-        </ReactFlow>
+      <div className="flex-1 flex flex-col">
+        <div className="flex-1" ref={reactFlowWrapper}>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+            onNodeClick={onNodeClick}
+            onPaneClick={onPaneClick}
+            fitView
+            className="bg-gray-900"
+          >
+            <Controls />
+            <Background color="#333" gap={20} />
+          </ReactFlow>
+        </div>
+
+        {showConnectionsJson && (
+          <div className="h-64 bg-gray-800 border-t border-gray-700 p-4 overflow-auto">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-white font-semibold text-sm">
+                Conexões do Workflow (JSON)
+              </h3>
+              <button
+                onClick={() => setShowConnectionsJson(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+            <pre className="text-green-400 text-xs font-mono overflow-auto">
+              {JSON.stringify(getConnectionsJson(), null, 2)}
+            </pre>
+          </div>
+        )}
       </div>
 
       <NodeCreationModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleSaveCustomNode}
+      />
+      <ComplexNodeCreation
+        isOpen={showComplexNodeModal}
+        onClose={() => setShowComplexNodeModal(false)}
+        onSave={handleSaveCustomNode}
+        currentNodes={nodes}
+        currentEdges={edges}
       />
     </div>
   );

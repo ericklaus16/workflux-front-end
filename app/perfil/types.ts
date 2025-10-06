@@ -1,3 +1,6 @@
+import { Node } from "@xyflow/react";
+import { NodeData } from "../interfaces/Node";
+
 export type User = {
   id: string;
   name: string;
@@ -12,3 +15,5 @@ export type Task = {
   description?: string;
   completed?: boolean;
 };
+
+export type CustomNode = Node<NodeData>;
